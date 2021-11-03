@@ -3,6 +3,7 @@
 
 #include "framework.h"
 #include "JadeIDE.h"
+#include "CodeEditorWindow.h"
 
 #define MAX_LOADSTRING 100
 
@@ -10,6 +11,7 @@
 HINSTANCE hInst;                                // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
+HWND editorHandle;
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -125,6 +127,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)
     {
+    case WM_CREATE: //todo replace from this block to oncreate func
+    {
+        CodeEditorWindow editor = CodeEditorWindow(hWnd);
+        editorHandle = editor.GetHandle();
+        RECT rect;
+        GetClientRect(hWnd, &rect);
+        editor.CreateEditorWindow(rect);
+        DeleteObject(&rect);
+    }
+    break;
     case WM_COMMAND:
         {
             int wmId = LOWORD(wParam);
@@ -150,6 +162,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             EndPaint(hWnd, &ps);
         }
         break;
+    case WM_SIZE: // fix me
+    {
+        RECT rect;
+        GetClientRect(hWnd, &rect);
+        SetWindowPos(editorHandle, HWND_TOP, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, 0);
+        DeleteObject(&rect);
+    }
+    break;
     case WM_DESTROY:
         PostQuitMessage(0);
         break;
