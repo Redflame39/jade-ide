@@ -3,6 +3,8 @@
 
 #include "framework.h"
 #include "JadeIDE.h"
+#include <CommCtrl.h>
+#include <Richedit.h>
 
 #define MAX_LOADSTRING 100
 
@@ -111,6 +113,21 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    return TRUE;
 }
 
+HWND CreateRichEdit(HWND hwndOwner,        // Dialog box handle.
+    int x, int y,          // Location.
+    int width, int height, // Dimensions.
+    HINSTANCE hinst)       // Application or DLL instance.
+{
+    LoadLibrary(TEXT("Msftedit.dll"));
+
+    HWND hwndEdit = CreateWindowEx(0, MSFTEDIT_CLASS, TEXT("Type here"),
+        ES_MULTILINE | WS_VISIBLE | WS_CHILD | WS_BORDER | WS_TABSTOP,
+        x, y, width, height,
+        hwndOwner, NULL, hinst, NULL);
+
+    return hwndEdit;
+}
+
 //
 //  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
 //
@@ -125,6 +142,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)
     {
+    case WM_CREATE:
+    {
+        HINSTANCE hInstance = GetModuleHandle(NULL);
+        RECT rect;
+        GetClientRect(hWnd, &rect);
+        CreateRichEdit(hWnd, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, hInstance);
+    }
+    break;
     case WM_COMMAND:
         {
             int wmId = LOWORD(wParam);
