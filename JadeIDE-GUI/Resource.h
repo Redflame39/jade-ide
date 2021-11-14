@@ -7,8 +7,10 @@
 #define IDR_MAINFRAME			128
 #define IDD_JADEIDEGUI_DIALOG	102
 #define IDD_ABOUTBOX			103
+#define IDD_TREEVIEW            110
 #define IDM_ABOUT				104
 #define IDM_EXIT				105
+#define IDM_OPEN_PROJECT        106
 #define IDI_JADEIDEGUI			107
 #define IDI_SMALL				108
 #define IDC_JADEIDEGUI			109

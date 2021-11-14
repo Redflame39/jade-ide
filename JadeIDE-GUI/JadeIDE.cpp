@@ -1,5 +1,6 @@
 // JadeIDE-GUI.cpp : Defines the entry point for the application.
 //
+#pragma comment(lib, "comctl32.lib")
 
 #include "framework.h"
 #include "JadeIDE.h"
@@ -128,6 +129,53 @@ HWND CreateRichEdit(HWND hwndOwner,        // Dialog box handle.
     return hwndEdit;
 }
 
+// Create a tree-view control. 
+// Returns the handle to the new control if successful,
+// or NULL otherwise. 
+// hwndParent - handle to the control's parent window. 
+// lpszFileName - name of the file to parse for tree-view items.
+// g_hInst - the global instance handle.
+// ID_TREEVIEW - the resource ID of the control.
+
+HWND CreateATreeView(HWND hwndParent)
+{
+    RECT rcClient;  // dimensions of client area 
+    HWND hwndTV;    // handle to tree-view control 
+
+    // Ensure that the common control DLL is loaded. 
+    INITCOMMONCONTROLSEX config;
+    config.dwSize = sizeof(INITCOMMONCONTROLSEX);
+    config.dwICC = ICC_TREEVIEW_CLASSES;
+    InitCommonControlsEx(&config);
+
+    // Get the dimensions of the parent window's client area, and create 
+    // the tree-view control. 
+    GetClientRect(hwndParent, &rcClient);
+    hwndTV = CreateWindowEx(0,
+        WC_TREEVIEW,
+        TEXT("Tree View"),
+        WS_VISIBLE | WS_CHILD | WS_BORDER | TVS_HASLINES,
+        0,
+        0,
+        rcClient.right,
+        rcClient.bottom,
+        hwndParent,
+        (HMENU)IDD_TREEVIEW,
+        hInst,
+        NULL);
+
+    // Initialize the image list, and add items to the control. 
+    // InitTreeViewImageLists and InitTreeViewItems are application- 
+    // defined functions, shown later. 
+    /*if (!InitTreeViewImageLists(hwndTV) ||
+        !InitTreeViewItems(hwndTV))
+    {
+        DestroyWindow(hwndTV);
+        return FALSE;
+    }*/
+    return hwndTV;
+}
+
 //
 //  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
 //
@@ -144,10 +192,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
     case WM_CREATE:
     {
-        HINSTANCE hInstance = GetModuleHandle(NULL);
         RECT rect;
         GetClientRect(hWnd, &rect);
-        CreateRichEdit(hWnd, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, hInstance);
+        //CreateRichEdit(hWnd, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, hInst);
+        CreateATreeView(hWnd);
     }
     break;
     case WM_COMMAND:
@@ -162,6 +210,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case IDM_EXIT:
                 DestroyWindow(hWnd);
                 break;
+            case IDM_OPEN_PROJECT:
+            {
+                
+                break;
+            }
             default:
                 return DefWindowProc(hWnd, message, wParam, lParam);
             }
