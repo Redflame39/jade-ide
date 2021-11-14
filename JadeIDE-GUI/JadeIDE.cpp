@@ -6,6 +6,8 @@
 #include "JadeIDE.h"
 #include <CommCtrl.h>
 #include <Richedit.h>
+#include <shlobj_core.h>
+#include <vector>
 
 #define MAX_LOADSTRING 100
 
@@ -13,12 +15,6 @@
 HINSTANCE hInst;                                // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
-
-// Forward declarations of functions included in this code module:
-ATOM                MyRegisterClass(HINSTANCE hInstance);
-BOOL                InitInstance(HINSTANCE, int);
-LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
-INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -57,8 +53,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     return (int) msg.wParam;
 }
-
-
 
 //
 //  FUNCTION: MyRegisterClass()
@@ -176,6 +170,29 @@ HWND CreateATreeView(HWND hwndParent)
     return hwndTV;
 }
 
+LPCTSTR OpenDirectory(HWND hwndOwner)
+{
+    BROWSEINFO bInfo;
+    ZeroMemory(&bInfo, sizeof(BROWSEINFO));
+    TCHAR folderBuf[MAX_PATH];
+
+    bInfo.hwndOwner = hwndOwner;
+    bInfo.pidlRoot = NULL;
+    bInfo.pszDisplayName = folderBuf;
+    bInfo.lpszTitle = L"Specify project folder\0";
+    bInfo.ulFlags = BIF_NEWDIALOGSTYLE | BIF_SHAREABLE;
+
+    PIDLIST_ABSOLUTE pidl = SHBrowseForFolder(&bInfo);
+
+    if (!pidl) 
+    {
+        return NULL;
+    }
+
+    SHGetPathFromIDList(pidl, folderBuf);
+    return folderBuf;
+}
+
 //
 //  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
 //
@@ -212,7 +229,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 break;
             case IDM_OPEN_PROJECT:
             {
-                
+                LPCTSTR path = OpenDirectory(hWnd);
                 break;
             }
             default:
