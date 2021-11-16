@@ -8,6 +8,8 @@
 #include <Richedit.h>
 #include <shlobj_core.h>
 #include <vector>
+#include <strsafe.h>
+#include <minwinbase.h>
 
 #define MAX_LOADSTRING 100
 
@@ -174,7 +176,7 @@ LPCTSTR OpenDirectory(HWND hwndOwner)
 {
     BROWSEINFO bInfo;
     ZeroMemory(&bInfo, sizeof(BROWSEINFO));
-    TCHAR folderBuf[MAX_PATH];
+    static TCHAR folderBuf[MAX_PATH];
 
     bInfo.hwndOwner = hwndOwner;
     bInfo.pidlRoot = NULL;
@@ -191,6 +193,37 @@ LPCTSTR OpenDirectory(HWND hwndOwner)
 
     SHGetPathFromIDList(pidl, folderBuf);
     return folderBuf;
+}
+
+std::vector<WIN32_FIND_DATAW> FindDirEntries(LPCTSTR dirFullPath)
+{
+    WIN32_FIND_DATAW ffd;
+    ZeroMemory(&ffd, sizeof(WIN32_FIND_DATAW));
+    TCHAR szDir[MAX_PATH];
+    HANDLE hFind = INVALID_HANDLE_VALUE;
+    std::vector<WIN32_FIND_DATAW> result;
+
+    // Prepare string for use with FindFile functions.  First, copy the
+    // string to a buffer, then append '\*' to the directory name.
+
+    StringCchCopy(szDir, MAX_PATH, dirFullPath);
+    StringCchCat(szDir, MAX_PATH, TEXT("\\*"));
+
+    // Find the first file in the directory.
+    hFind = FindFirstFile(szDir, &ffd);
+
+    // List all the files in the directory
+
+    do
+    {
+        if (!(_tcscmp(ffd.cFileName, L".") == 0 || _tcscmp(ffd.cFileName, L"..") == 0))
+        {
+            result.push_back(ffd);
+        }
+    } while (FindNextFile(hFind, &ffd) != 0);
+
+    FindClose(hFind);
+    return result;
 }
 
 //
@@ -230,6 +263,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case IDM_OPEN_PROJECT:
             {
                 LPCTSTR path = OpenDirectory(hWnd);
+                std::vector<WIN32_FIND_DATA> entrs = FindDirEntries(path);
                 break;
             }
             default:
