@@ -13,7 +13,7 @@ HWND CreateRichEdit(HWND hwndOwner,        // Dialog box handle.
     HINSTANCE hinst);       // Application or DLL instance.
 HWND CreateATreeView(HWND hwndParent);
 
-typedef struct ProjectFileInfo {
+struct ProjectFileInfo {
     TCHAR fileFullPath[MAX_PATH];
     TCHAR fileName[MAX_PATH];
-} PROJECT_FILE_INFO;
+};

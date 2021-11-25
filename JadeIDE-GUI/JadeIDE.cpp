@@ -10,6 +10,7 @@
 #include <vector>
 #include <strsafe.h>
 #include <minwinbase.h>
+#include <string>
 
 #define MAX_LOADSTRING 100
 
@@ -17,6 +18,7 @@
 HINSTANCE hInst;                                // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
+HWND hwndTv;
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -110,6 +112,18 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    return TRUE;
 }
 
+LPWSTR GetBaseName(LPTSTR fullpath)
+{
+    std::wstring w_fp(fullpath);
+    const int copyFrom = w_fp.find_last_of(L"/\\") + 1;
+    const int copyCount = w_fp.length() - copyFrom;
+    wchar_t* buffer = new wchar_t(copyCount);
+    w_fp.copy(buffer, copyCount, copyFrom);
+    buffer[copyCount] = '\0';
+    return buffer;
+    //std::wstring w_fp_substr = w_fp.substr(w_fp.find_last_of(L"/\\") + 1);
+}
+
 HWND CreateRichEdit(HWND hwndOwner,        // Dialog box handle.
     int x, int y,          // Location.
     int width, int height, // Dimensions.
@@ -150,7 +164,7 @@ HWND CreateATreeView(HWND hwndParent)
     hwndTV = CreateWindowEx(0,
         WC_TREEVIEW,
         TEXT("Tree View"),
-        WS_VISIBLE | WS_CHILD | WS_BORDER | TVS_HASLINES,
+        WS_CHILD | WS_VISIBLE | WS_BORDER | WS_SIZEBOX | WS_VSCROLL | WS_TABSTOP | TVS_HASLINES | TVS_LINESATROOT | TVS_HASBUTTONS | TVS_SHOWSELALWAYS,
         0,
         0,
         rcClient.right,
@@ -193,6 +207,128 @@ LPCTSTR OpenDirectory(HWND hwndOwner)
 
     SHGetPathFromIDList(pidl, folderBuf);
     return folderBuf;
+}
+
+HTREEITEM AddItemToTree(HWND hwndTree, TCHAR* text, int nLevel)
+{
+    TVITEM tvi;
+    ZeroMemory(&tvi, sizeof(TVITEM));
+    TVINSERTSTRUCT tvins;
+    static HTREEITEM hPrev = (HTREEITEM)TVI_FIRST;
+    static HTREEITEM hRootItem = NULL;
+    static HTREEITEM hPrevLev2Item = NULL;
+    //tvi.mask = TVIF_TEXT | TVIF_IMAGE | TVIF_PARAM;
+    tvi.mask = TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIS_STATEIMAGEMASK;
+    //tvi.iImage = AddIconToTree(hwndTree, text);
+    tvi.iSelectedImage = tvi.iImage;
+    LPWSTR baseName = GetBaseName(text);
+    tvi.pszText = baseName;
+    tvins.hInsertAfter = hPrev;
+    tvins.item = tvi;
+
+    if (nLevel == 1)
+    {
+        tvins.hParent = TVI_ROOT;
+    }
+    else if (nLevel == 2)
+    {
+        tvins.hParent = hRootItem;
+    }
+    else
+    {
+        TVITEM tviSetup;
+        tviSetup.hItem = hPrev;
+        tviSetup.mask = TVIF_PARAM;
+        TVITEM* tviLocal = &tviSetup;
+        TreeView_GetItem(hwndTree, tviLocal);
+
+        if (nLevel > tviLocal->lParam)
+        {
+            tvins.hParent = hPrev;
+        }
+        else
+        {
+            HTREEITEM hPrevLocal = TreeView_GetParent(hwndTree, hPrev);
+            tviLocal->hItem = hPrevLocal;
+            TreeView_GetItem(hwndTree, tviLocal);
+            for (int i = nLevel; i <= tviLocal->lParam;)
+            {
+                HTREEITEM hPrevLocalTemp = TreeView_GetParent(hwndTree, hPrevLocal);
+                hPrevLocal = hPrevLocalTemp;
+                tviLocal->hItem = hPrevLocal;
+                TreeView_GetItem(hwndTree, tviLocal);
+            }
+            tviLocal->mask = TVIF_TEXT;
+            TreeView_GetItem(hwndTree, tviLocal);
+            tvins.hParent = hPrevLocal;
+
+        }
+    }
+
+    hPrev = (HTREEITEM)SendMessage(hwndTree, TVM_INSERTITEM, 0, (LPARAM)(LPTVINSERTSTRUCT)&tvins);
+
+    if (hPrev == 0)
+    {
+        return NULL;
+    }
+    if (nLevel == 1)
+    {
+        hRootItem = hPrev;
+    }
+
+    return hPrev;
+}
+
+BOOL ListDirectoryContents(const TCHAR* sDir)
+{
+    WIN32_FIND_DATA fdFile;
+    HANDLE hFind = 0;
+    std::vector<std::wstring> FileNames;
+
+    TCHAR sPath[2048];
+    _stprintf_s(sPath, TEXT("%s\\*.*"), sDir);
+
+    if ((hFind = FindFirstFile(sPath, &fdFile)) == INVALID_HANDLE_VALUE)
+    {
+        
+        return FALSE;
+    }
+
+    do
+    {
+        if (_tcscmp(fdFile.cFileName, TEXT(".")) != 0 && _tcscmp(fdFile.cFileName, TEXT("..")) != 0)
+        {
+            _stprintf_s(sPath, TEXT("%s\\%s"), sDir, fdFile.cFileName);
+            if ((fdFile.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+            {
+                if ((fdFile.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN) == 0)
+                {
+                    // Directories
+                    AddItemToTree(hwndTv, sPath, 2);
+                    //FileNames.insert(sPath);
+                    //ListDirectoryContents(sPath); // Recursion
+                }
+            }
+            else
+            {
+                if ((fdFile.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN) == 0)
+                {
+                    //Files
+                    //AddItemToTree(hwndTree, sPath, 2);
+                    FileNames.push_back(sPath);
+                }
+            }
+        }
+    } while (FindNextFile(hFind, &fdFile));
+
+    FindClose(hFind);
+
+    for (auto FileName = FileNames.begin(); FileName != FileNames.end(); ++FileName)
+    {
+        AddItemToTree(hwndTv, (TCHAR*)FileName->c_str(), 2);
+    }
+
+    return true;
 }
 
 std::vector<WIN32_FIND_DATAW> FindDirEntries(LPCTSTR dirFullPath)
@@ -245,9 +381,30 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         RECT rect;
         GetClientRect(hWnd, &rect);
         //CreateRichEdit(hWnd, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, hInst);
-        CreateATreeView(hWnd);
+        hwndTv = CreateATreeView(hWnd);
+        NMHDR nmh;
+        nmh.code = TVN_ITEMEXPANDED;    // Message type defined by control.
+        nmh.idFrom = GetDlgCtrlID(hwndTv);
+        nmh.hwndFrom = hwndTv;
+        SendMessage(GetParent(hwndTv),
+            WM_NOTIFY,
+            nmh.idFrom,
+            (LPARAM)&nmh);
     }
     break;
+    case WM_NOTIFY:
+        switch (((LPNMHDR)lParam)->code)
+        {
+        case TVN_ITEMEXPANDED:
+        {
+            LPNMTREEVIEW lpnmtv = (LPNMTREEVIEW)lParam;
+            LPTSTR text = lpnmtv->itemNew.pszText;
+            LPWSTR fileName = GetBaseName(text);
+            AddItemToTree(hwndTv, fileName, ((LPNMTREEVIEW)lParam)->itemNew.hItem);
+        }
+        break;
+        }
+        break;
     case WM_COMMAND:
         {
             int wmId = LOWORD(wParam);
@@ -263,7 +420,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case IDM_OPEN_PROJECT:
             {
                 LPCTSTR path = OpenDirectory(hWnd);
-                std::vector<WIN32_FIND_DATA> entrs = FindDirEntries(path);
+                //AddItemToTree(hwndTv, const_cast<LPTSTR>(path), 1);
+                ListDirectoryContents(path);
+                //std::vector<WIN32_FIND_DATA> entrs = FindDirEntries(path);
                 break;
             }
             default:
