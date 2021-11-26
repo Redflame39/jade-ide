@@ -11,6 +11,7 @@
 #define IDM_ABOUT				104
 #define IDM_EXIT				105
 #define IDM_OPEN_PROJECT        106
+#define IDM_CLOSE_PROJECT       107
 #define IDI_JADEIDEGUI			107
 #define IDI_SMALL				108
 #define IDC_JADEIDEGUI			109
