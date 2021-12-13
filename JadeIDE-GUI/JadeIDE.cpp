@@ -12,6 +12,8 @@
 #include <minwinbase.h>
 #include <string>
 #include <filesystem>
+#include <windowsx.h>
+#include "FilesFunctions.h"
 
 #define MAX_LOADSTRING 100
 
@@ -29,8 +31,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
-
-    // TODO: Place code here.
 
     // Initialize global strings
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
@@ -114,80 +114,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    return TRUE;
 }
 
-LPWSTR GetBaseName(LPTSTR fullpath)
-{
-    std::wstring w_fp(fullpath);
-    const int copyFrom = w_fp.find_last_of(L"/\\") + 1;
-    const int copyCount = w_fp.length() - copyFrom;
-    wchar_t* buffer = new wchar_t(copyCount);
-    w_fp.copy(buffer, copyCount, copyFrom);
-    buffer[copyCount] = '\0';
-    return buffer;
-    //std::wstring w_fp_substr = w_fp.substr(w_fp.find_last_of(L"/\\") + 1);
-}
-
-HWND CreateRichEdit(HWND hwndOwner,        // Dialog box handle.
-    int x, int y,          // Location.
-    int width, int height, // Dimensions.
-    HINSTANCE hinst)       // Application or DLL instance.
-{
-    LoadLibrary(TEXT("Msftedit.dll"));
-
-    HWND hwndEdit = CreateWindowEx(0, MSFTEDIT_CLASS, TEXT("Type here"),
-        ES_MULTILINE | WS_VISIBLE | WS_CHILD | WS_BORDER | WS_TABSTOP,
-        x, y, width, height,
-        hwndOwner, NULL, hinst, NULL);
-
-    return hwndEdit;
-}
-
-// Create a tree-view control. 
-// Returns the handle to the new control if successful,
-// or NULL otherwise. 
-// hwndParent - handle to the control's parent window. 
-// lpszFileName - name of the file to parse for tree-view items.
-// g_hInst - the global instance handle.
-// ID_TREEVIEW - the resource ID of the control.
-
-HWND CreateATreeView(HWND hwndParent)
-{
-    RECT rcClient;  // dimensions of client area 
-    HWND hwndTV;    // handle to tree-view control 
-
-    // Ensure that the common control DLL is loaded. 
-    INITCOMMONCONTROLSEX config;
-    config.dwSize = sizeof(INITCOMMONCONTROLSEX);
-    config.dwICC = ICC_TREEVIEW_CLASSES;
-    InitCommonControlsEx(&config);
-
-    // Get the dimensions of the parent window's client area, and create 
-    // the tree-view control. 
-    GetClientRect(hwndParent, &rcClient);
-    hwndTV = CreateWindowEx(0,
-        WC_TREEVIEW,
-        TEXT("Tree View"),
-        WS_CHILD | WS_VISIBLE | WS_BORDER | WS_SIZEBOX | WS_VSCROLL | WS_TABSTOP | TVS_HASLINES | TVS_LINESATROOT | TVS_HASBUTTONS | TVS_SHOWSELALWAYS,
-        0,
-        0,
-        rcClient.right,
-        rcClient.bottom,
-        hwndParent,
-        (HMENU)IDD_TREEVIEW,
-        hInst,
-        NULL);
-
-    // Initialize the image list, and add items to the control. 
-    // InitTreeViewImageLists and InitTreeViewItems are application- 
-    // defined functions, shown later. 
-    /*if (!InitTreeViewImageLists(hwndTV) ||
-        !InitTreeViewItems(hwndTV))
-    {
-        DestroyWindow(hwndTV);
-        return FALSE;
-    }*/
-    return hwndTV;
-}
-
 LPCTSTR OpenDirectory(HWND hwndOwner)
 {
     BROWSEINFO bInfo;
@@ -211,31 +137,6 @@ LPCTSTR OpenDirectory(HWND hwndOwner)
     return folderBuf;
 }
 
-HTREEITEM AddItemToTree(HWND hwndTree, TCHAR* text, HTREEITEM hParent)
-{
-    TVITEM tvi;
-    TVINSERTSTRUCT tvins;
-    HTREEITEM hti;
-
-    //LPTSTR baseName = const_cast<LPTSTR>(std::filesystem::path(text).filename().wstring().c_str());
-    tvi.pszText = text;
-    tvi.mask = TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_PARAM;
-    tvi.cchTextMax = sizeof(tvi.pszText) / sizeof(tvi.pszText[0]);
-
-    tvins.item = tvi;
-
-    tvins.hInsertAfter = hParent;
-    tvins.hParent = hParent;
-    HTREEITEM hPrev = (HTREEITEM) SendMessage(hwndTv, TVM_INSERTITEM, 0, (LPARAM)(LPTVINSERTSTRUCT)&tvins);
-
-    if (hPrev == NULL)
-    {
-        return NULL;
-    }
-
-    return hPrev;
-}
-
 BOOL ListDirectoryContents(const TCHAR* sDir, HTREEITEM parent)
 {
     WIN32_FIND_DATA fdFile;
@@ -247,7 +148,6 @@ BOOL ListDirectoryContents(const TCHAR* sDir, HTREEITEM parent)
 
     if ((hFind = FindFirstFile(sPath, &fdFile)) == INVALID_HANDLE_VALUE)
     {
-        
         return FALSE;
     }
     do
@@ -260,8 +160,9 @@ BOOL ListDirectoryContents(const TCHAR* sDir, HTREEITEM parent)
                 if ((fdFile.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN) == 0)
                 {
                     HTREEITEM localParent;
+                    LPFINFO pInfo = CreateProjectFileInfo(fdFile.cFileName, sPath, FileType::PDIRECTORY);
                     // Directories
-                    localParent = AddItemToTree(hwndTv, fdFile.cFileName, parent);
+                    localParent = AddItemToTree(hwndTv, pInfo, parent);
                     //FileNames.insert(sPath);
                     ListDirectoryContents(sPath, localParent); // Recursion
                 }
@@ -271,7 +172,8 @@ BOOL ListDirectoryContents(const TCHAR* sDir, HTREEITEM parent)
                 if ((fdFile.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN) == 0)
                 {
                     //Files
-                    AddItemToTree(hwndTv, fdFile.cFileName, parent);
+                    LPFINFO pInfo = CreateProjectFileInfo(fdFile.cFileName, sPath, FileType::PFILE);
+                    AddItemToTree(hwndTv, pInfo, parent);
                     FileNames.push_back(sPath);
                 }
             }
@@ -286,37 +188,6 @@ BOOL ListDirectoryContents(const TCHAR* sDir, HTREEITEM parent)
     }
 
     return true;
-}
-
-std::vector<WIN32_FIND_DATAW> FindDirEntries(LPCTSTR dirFullPath)
-{
-    WIN32_FIND_DATAW ffd;
-    ZeroMemory(&ffd, sizeof(WIN32_FIND_DATAW));
-    TCHAR szDir[MAX_PATH];
-    HANDLE hFind = INVALID_HANDLE_VALUE;
-    std::vector<WIN32_FIND_DATAW> result;
-
-    // Prepare string for use with FindFile functions.  First, copy the
-    // string to a buffer, then append '\*' to the directory name.
-
-    StringCchCopy(szDir, MAX_PATH, dirFullPath);
-    StringCchCat(szDir, MAX_PATH, TEXT("\\*"));
-
-    // Find the first file in the directory.
-    hFind = FindFirstFile(szDir, &ffd);
-
-    // List all the files in the directory
-
-    do
-    {
-        if (!(_tcscmp(ffd.cFileName, L".") == 0 || _tcscmp(ffd.cFileName, L"..") == 0))
-        {
-            result.push_back(ffd);
-        }
-    } while (FindNextFile(hFind, &ffd) != 0);
-
-    FindClose(hFind);
-    return result;
 }
 
 //
@@ -335,10 +206,58 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
     case WM_CREATE:
     {
-        RECT rect;
-        GetClientRect(hWnd, &rect);
-        //CreateRichEdit(hWnd, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, hInst);
-        hwndTv = CreateATreeView(hWnd);
+        CreateRichEdit(hWnd, hInst);
+        hwndTv = CreateATreeView(hInst, hWnd);
+    }
+    break;
+    case WM_CONTEXTMENU:
+    {
+        RECT rcTree;
+        HTREEITEM htvItem;
+        TVHITTESTINFO htInfo = { 0 };
+
+        GetWindowRect(hwndTv, &rcTree);
+
+        long xPos = GET_X_LPARAM(lParam) - rcTree.left;   // x position from message, in screen coordinates
+        long yPos = GET_Y_LPARAM(lParam) - rcTree.top - 1;   // y position from message, in screen coordinates 
+
+                      // get its window coordinates
+        htInfo.pt.x = xPos;            // convert to client coordinates
+        htInfo.pt.y = yPos;
+
+        if (htvItem = TreeView_HitTest(hwndTv, &htInfo)) {    // hit test
+            TreeView_SelectItem(hwndTv, htvItem);           // success; select the item
+            TVITEM item;
+            TCHAR buf[100];
+            item.hItem = htvItem;
+            item.mask = TVIF_PARAM;
+            TreeView_GetItem(hwndTv, &item);
+
+            HMENU hMenu;
+            HMENU hmenuTrackPopup;
+
+            hMenu = LoadMenu(hInst, MAKEINTRESOURCE(IDC_TREEVIEWCONTEXT));
+            if (hMenu == NULL)
+            {
+                break;
+            }
+
+            hmenuTrackPopup = GetSubMenu(hMenu, 0);
+            POINT pt;
+            pt.x = xPos;
+            pt.y = yPos;
+            ClientToScreen(hWnd, &pt);
+
+            LPFINFO fInfo = (LPFINFO)item.lParam;
+
+            if (fInfo->fType == FileType::PFILE)
+            {
+                EnableMenuItem(hmenuTrackPopup, IDM_CONTEXTCREATEPACKAGE, MF_GRAYED);
+            }
+
+            TrackPopupMenu(hmenuTrackPopup, TPM_LEFTALIGN | TPM_LEFTBUTTON,
+                pt.x, pt.y, 0, hWnd, NULL);
+        }
     }
     break;
     case WM_COMMAND:
@@ -365,9 +284,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     TreeView_DeleteAllItems(hwndTv);
                     treeRoot = NULL;
                 }
-                treeRoot = AddItemToTree(hwndTv, const_cast<LPTSTR>(path), TVI_ROOT);
+                LPFINFO pInfo = CreateProjectFileInfo(const_cast<LPTSTR>(path), const_cast<LPTSTR>(path), FileType::PROOT);
+                treeRoot = AddItemToTree(hwndTv, pInfo, TVI_ROOT);
                 ListDirectoryContents(path, treeRoot);
-                //std::vector<WIN32_FIND_DATA> entrs = FindDirEntries(path);
                 break;
             }
             case IDM_CLOSE_PROJECT:
@@ -377,6 +296,57 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     TreeView_DeleteAllItems(hwndTv);
                     treeRoot = NULL;
                 }
+            }
+            break;
+            case IDM_CONTEXTCREATEFILE:
+            {
+                HTREEITEM htvItem;
+                TVITEM item;
+
+                htvItem = TreeView_GetSelection(hwndTv);
+                item.hItem = htvItem;
+                item.mask = TVIF_PARAM;
+                TreeView_GetItem(hwndTv, &item);
+
+                LPFINFO fInfo = (LPFINFO)item.lParam;
+
+                LPCFDATA cfData = CreateCFDATA(fInfo->fileFullPath, htvItem);
+                cfData->hwndTv = hwndTv;
+                cfData->createType = FileType::PFILE;
+                DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_CREATEFILEBOX), hWnd, CreateFileDialog, (LPARAM)cfData);
+            }
+            break;
+            case IDM_CONTEXTCREATEPACKAGE:
+            {
+                HTREEITEM htvItem;
+                TVITEM item;
+
+                htvItem = TreeView_GetSelection(hwndTv);
+                item.hItem = htvItem;
+                item.mask = TVIF_PARAM;
+                TreeView_GetItem(hwndTv, &item);
+
+                LPFINFO fInfo = (LPFINFO)item.lParam;
+
+                LPCFDATA cfData = CreateCFDATA(fInfo->fileFullPath, htvItem);
+                cfData->hwndTv = hwndTv;
+                cfData->createType = FileType::PDIRECTORY;
+                DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_CREATEFILEBOX), hWnd, CreateFileDialog, (LPARAM)cfData);
+            }
+            break;
+            case IDM_CONTEXTOPEN:
+            {
+                MessageBox(hWnd, L"", L"", MB_OK);
+            }
+            break;
+            case IDM_CONTEXTDELETE:
+            {
+                MessageBox(hWnd, L"", L"", MB_OK);
+            }
+            break;
+            case IDM_CONTEXTRENAME:
+            {
+                MessageBox(hWnd, L"", L"", MB_OK);
             }
             break;
             default:
@@ -399,24 +369,4 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         return DefWindowProc(hWnd, message, wParam, lParam);
     }
     return 0;
-}
-
-// Message handler for about box.
-INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    UNREFERENCED_PARAMETER(lParam);
-    switch (message)
-    {
-    case WM_INITDIALOG:
-        return (INT_PTR)TRUE;
-
-    case WM_COMMAND:
-        if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
-        {
-            EndDialog(hDlg, LOWORD(wParam));
-            return (INT_PTR)TRUE;
-        }
-        break;
-    }
-    return (INT_PTR)FALSE;
 }

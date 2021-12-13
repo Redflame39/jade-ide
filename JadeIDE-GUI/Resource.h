@@ -7,6 +7,7 @@
 #define IDR_MAINFRAME			128
 #define IDD_JADEIDEGUI_DIALOG	102
 #define IDD_ABOUTBOX			103
+#define IDD_CREATEFILEBOX		121
 #define IDD_TREEVIEW            110
 #define IDM_ABOUT				104
 #define IDM_EXIT				105
@@ -15,7 +16,17 @@
 #define IDI_JADEIDEGUI			107
 #define IDI_SMALL				108
 #define IDC_JADEIDEGUI			109
+#define IDC_TREEVIEWCONTEXT	    200
+#define IDM_CONTEXTOPEN	        201
+#define IDM_CONTEXTDELETE	    202
+#define IDM_CONTEXTRENAME	    203
+#define IDM_CONTEXTCREATEFILE	211
+#define IDM_CONTEXTCREATEPACKAGE 212
+#define IDC_NEWFILETEXT         300
 #define IDC_MYICON				2
+#define IDB_FOLDERTREEICO       401
+#define IDB_FILETREEICO         402
+#define IDB_ROOTTREEICO         403
 #ifndef IDC_STATIC
 #define IDC_STATIC				-1
 #endif

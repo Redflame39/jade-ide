@@ -141,18 +141,31 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="FilesFunctions.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="JadeIDE.h" />
+    <ClInclude Include="redit.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="structures.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="treeview.h" />
+    <ClInclude Include="wndproc.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="FilesFunctions.cpp" />
     <ClCompile Include="JadeIDE.cpp" />
+    <ClCompile Include="redit.cpp" />
+    <ClCompile Include="structures.cpp" />
+    <ClCompile Include="treeview.cpp" />
+    <ClCompile Include="wndproc.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="JadeIDE-GUI.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="file.bmp" />
+    <Image Include="package.BMP" />
+    <Image Include="root.bmp" />
     <Image Include="JadeIDE-GUI.ico" />
     <Image Include="small.ico" />
   </ItemGroup>

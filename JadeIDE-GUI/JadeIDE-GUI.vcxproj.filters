@@ -27,9 +27,39 @@
     <ClInclude Include="JadeIDE.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="FilesFunctions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wndproc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="structures.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="treeview.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="redit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="JadeIDE.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FilesFunctions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="wndproc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="structures.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="treeview.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="redit.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -43,6 +73,15 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="JadeIDE-GUI.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="root.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="file.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="package.BMP">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
