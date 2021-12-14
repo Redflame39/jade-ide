@@ -1,6 +1,7 @@
 // JadeIDE-GUI.cpp : Defines the entry point for the application.
 //
 #pragma comment(lib, "comctl32.lib")
+#pragma comment(lib, "Shlwapi.lib")
 
 #include "framework.h"
 #include "JadeIDE.h"
@@ -252,9 +253,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             if (fInfo->fType == FileType::PFILE)
             {
+                EnableMenuItem(hmenuTrackPopup, IDM_CONTEXTCREATEFILE, MF_GRAYED);
                 EnableMenuItem(hmenuTrackPopup, IDM_CONTEXTCREATEPACKAGE, MF_GRAYED);
             }
-
             TrackPopupMenu(hmenuTrackPopup, TPM_LEFTALIGN | TPM_LEFTBUTTON,
                 pt.x, pt.y, 0, hWnd, NULL);
         }
@@ -272,6 +273,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case IDM_EXIT:
                 DestroyWindow(hWnd);
                 break;
+            case IDM_CREATE_PROJECT:
+            {
+
+            }
+            break;
             case IDM_OPEN_PROJECT:
             {
                 LPCTSTR path = OpenDirectory(hWnd);
@@ -341,12 +347,76 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
             case IDM_CONTEXTDELETE:
             {
-                MessageBox(hWnd, L"", L"", MB_OK);
+                HTREEITEM htvItem;
+                TVITEM item;
+
+                htvItem = TreeView_GetSelection(hwndTv);
+                item.hItem = htvItem;
+                item.mask = TVIF_PARAM;
+                TreeView_GetItem(hwndTv, &item);
+
+                LPFINFO fInfo = (LPFINFO)item.lParam;
+
+                switch (fInfo->fType)
+                {
+                case FileType::PFILE:
+                {
+                    
+                    int answ = MessageBox(hWnd, L"Are you sure you want to delete this file?", L"Deleting file", MB_YESNO);
+                    if (answ == IDYES)
+                    {
+                        BOOL deleted = DeleteProjectFile(fInfo->fileFullPath);
+                        if (deleted)
+                        {
+                            TreeView_DeleteItem(hwndTv, htvItem);
+                            MessageBox(hWnd, L"File was successfully deleted", L"Successfully deleted", MB_OK);
+                        }
+                    }
+                }
+                break;
+                case FileType::PDIRECTORY:
+                {
+                    if (PathIsDirectoryEmpty(fInfo->fileFullPath))
+                    {
+                        if (RemoveDirectory(fInfo->fileFullPath))
+                        {
+                            TreeView_DeleteItem(hwndTv, htvItem);
+                            MessageBox(hWnd, L"Package was successfully deleted", L"Successfully deleted", MB_OK);
+                        }
+                    }
+                    else
+                    {
+                        int answ = MessageBox(hWnd, L"Are you sure you want to delete this package?", L"Deleting package", MB_YESNO);
+                        if (answ == IDYES)
+                        {
+                            if (DeleteNonEmptyPackage(fInfo->fileFullPath))
+                            {
+                                TreeView_DeleteItem(hwndTv, htvItem);
+                                MessageBox(hWnd, L"Package was successfully deleted", L"Successfully deleted", MB_OK);
+                            }
+                        }
+                    }
+                }
+                break;
+                default:
+                    break;
+                }
             }
             break;
             case IDM_CONTEXTRENAME:
             {
-                MessageBox(hWnd, L"", L"", MB_OK);
+                HTREEITEM htvItem;
+                TVITEM item;
+
+                htvItem = TreeView_GetSelection(hwndTv);
+                item.hItem = htvItem;
+                item.mask = TVIF_PARAM;
+                TreeView_GetItem(hwndTv, &item);
+
+                LPFINFO fInfo = (LPFINFO)item.lParam;
+
+                LPRFDATA rfData = CreateRFDATA(fInfo->fileFullPath, hwndTv, htvItem);
+                DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_RENAMEFILEBOX), hWnd, RenameFileDialog, (LPARAM)rfData);
             }
             break;
             default:

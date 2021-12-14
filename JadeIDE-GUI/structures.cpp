@@ -25,3 +25,14 @@ LPCFDATA CreateCFDATA(TCHAR* parentPath, HTREEITEM parentNode)
 
     return cfData;
 }
+
+LPRFDATA CreateRFDATA(TCHAR* oldFilePath, HWND hwndTv, HTREEITEM hti)
+{
+    LPRFDATA rfData = new RFDATA;
+
+    rfData->oldFilePath = oldFilePath;
+    rfData->hwndTv = hwndTv;
+    rfData->itemToRename = hti;
+
+    return rfData;
+}
