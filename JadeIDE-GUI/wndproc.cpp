@@ -31,33 +31,7 @@ INT_PTR CALLBACK CreateFileDialog(HWND hDlg, UINT message, WPARAM wParam, LPARAM
     case WM_COMMAND:
         if (LOWORD(wParam) == IDOK)
         {
-            TCHAR newFileName[256];
-
-            WORD length = (WORD)SendDlgItemMessage(hDlg,
-                IDC_NEWFILETEXT,
-                EM_LINELENGTH,
-                (WPARAM)0,
-                (LPARAM)0);
-
-            if (length >= 256)
-            {
-                MessageBox(hDlg,
-                    L"Too many characters.",
-                    L"Error",
-                    MB_OK);
-                EndDialog(hDlg, TRUE);
-                return FALSE;
-            }
-
-            // Get the characters. 
-            SendDlgItemMessage(hDlg,
-                IDC_NEWFILETEXT,
-                EM_GETLINE,
-                (WPARAM)0,       // line 0 
-                (LPARAM)newFileName);
-
-            // Null-terminate the string. 
-            newFileName[length] = 0;
+            TCHAR* newFileName = GetDialogInput(hDlg);
 
             LPCFDATA cfData = (LPCFDATA)GetWindowLongPtr(hDlg, GWLP_USERDATA);
 
@@ -99,33 +73,7 @@ INT_PTR CALLBACK RenameFileDialog(HWND hDlg, UINT message, WPARAM wParam, LPARAM
     case WM_COMMAND:
         if (LOWORD(wParam) == IDOK)
         {
-            TCHAR newFileName[256];
-
-            WORD length = (WORD)SendDlgItemMessage(hDlg,
-                IDC_NEWFILETEXT,
-                EM_LINELENGTH,
-                (WPARAM)0,
-                (LPARAM)0);
-
-            if (length >= 256)
-            {
-                MessageBox(hDlg,
-                    L"Too many characters.",
-                    L"Error",
-                    MB_OK);
-                EndDialog(hDlg, TRUE);
-                return FALSE;
-            }
-
-            // Get the characters. 
-            SendDlgItemMessage(hDlg,
-                IDC_NEWFILETEXT,
-                EM_GETLINE,
-                (WPARAM)0,       // line 0 
-                (LPARAM)newFileName);
-
-            // Null-terminate the string. 
-            newFileName[length] = 0;
+            TCHAR* newFileName = GetDialogInput(hDlg);
 
             LPRFDATA rfData = (LPRFDATA)GetWindowLongPtr(hDlg, GWLP_USERDATA);
 
@@ -158,6 +106,71 @@ INT_PTR CALLBACK RenameFileDialog(HWND hDlg, UINT message, WPARAM wParam, LPARAM
         if (LOWORD(wParam) == IDCANCEL)
         {
             EndDialog(hDlg, LOWORD(wParam));
+            return (INT_PTR)TRUE;
+        }
+        break;
+    }
+    return (INT_PTR)FALSE;
+}
+
+INT_PTR CALLBACK CreateProjectDialog(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    switch (message)
+    {
+    case WM_INITDIALOG:
+        SetWindowLongPtr(hDlg, GWLP_USERDATA, lParam);
+        return (INT_PTR)TRUE;
+
+    case WM_COMMAND:
+        if (LOWORD(wParam) == IDOK)
+        {
+            TCHAR* newProjectName = GetDialogInput(hDlg);
+
+
+
+            EndDialog(hDlg, LOWORD(wParam));
+            return (INT_PTR)TRUE;
+        }
+        if (LOWORD(wParam) == IDCANCEL)
+        {
+            EndDialog(hDlg, LOWORD(wParam));
+            return (INT_PTR)TRUE;
+        }
+        if (LOWORD(wParam) == IDC_SELECTPROJECTFOLD)
+        {
+
+            LPCTSTR path = OpenDirectory(hDlg);
+
+            WORD length = (WORD)SendDlgItemMessage(hDlg,
+                IDC_NEWPROJECTFOLDER,
+                EM_LINELENGTH,
+                (WPARAM)0,
+                (LPARAM)0);
+
+            SendDlgItemMessage(hDlg,
+                IDC_NEWPROJECTFOLDER,
+                EM_SETSEL,
+                (WPARAM)0,
+                (LPARAM)-1);
+
+            SendDlgItemMessage(hDlg,
+                IDC_NEWPROJECTFOLDER,
+                EM_REPLACESEL,
+                (WPARAM)FALSE,
+                (LPARAM)path);
+
+            HWND hwndTv = (HWND)GetWindowLongPtr(hDlg, GWLP_USERDATA);
+
+            LPFINFO fInfo = new FINFO;
+
+            fInfo->fileFullPath = const_cast<TCHAR*>(path);
+            fInfo->fileName = const_cast<TCHAR*>(path);
+            fInfo->fType = FileType::PROOT;
+
+            HTREEITEM hti = AddItemToTree(hwndTv, fInfo, TVI_ROOT);
+
+            ListDirectoryContents(hwndTv, path, hti);
+
             return (INT_PTR)TRUE;
         }
         break;

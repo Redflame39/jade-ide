@@ -94,3 +94,80 @@ BOOL DeleteNonEmptyPackage(TCHAR* fullPath)
 	delete[] tempFullPath;
 	return result == 0 ? TRUE : FALSE;
 }
+
+
+LPCTSTR OpenDirectory(HWND hwndOwner)
+{
+	BROWSEINFO bInfo;
+	ZeroMemory(&bInfo, sizeof(BROWSEINFO));
+	static TCHAR folderBuf[MAX_PATH];
+
+	bInfo.hwndOwner = hwndOwner;
+	bInfo.pidlRoot = NULL;
+	bInfo.pszDisplayName = folderBuf;
+	bInfo.lpszTitle = L"Specify project folder\0";
+	bInfo.ulFlags = BIF_NEWDIALOGSTYLE | BIF_SHAREABLE;
+
+	PIDLIST_ABSOLUTE pidl = SHBrowseForFolder(&bInfo);
+
+	if (!pidl)
+	{
+		return NULL;
+	}
+
+	SHGetPathFromIDList(pidl, folderBuf);
+	return folderBuf;
+}
+
+BOOL ListDirectoryContents(HWND hwndTv, const TCHAR* sDir, HTREEITEM parent)
+{
+	WIN32_FIND_DATA fdFile;
+	HANDLE hFind = 0;
+	std::vector<std::wstring> FileNames;
+
+	TCHAR sPath[2048];
+	_stprintf_s(sPath, TEXT("%s\\*.*"), sDir);
+
+	if ((hFind = FindFirstFile(sPath, &fdFile)) == INVALID_HANDLE_VALUE)
+	{
+		return FALSE;
+	}
+	do
+	{
+		if (_tcscmp(fdFile.cFileName, TEXT(".")) != 0 && _tcscmp(fdFile.cFileName, TEXT("..")) != 0)
+		{
+			_stprintf_s(sPath, TEXT("%s\\%s"), sDir, fdFile.cFileName);
+			if ((fdFile.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+			{
+				if ((fdFile.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN) == 0)
+				{
+					HTREEITEM localParent;
+					LPFINFO pInfo = CreateProjectFileInfo(fdFile.cFileName, sPath, FileType::PDIRECTORY);
+					// Directories
+					localParent = AddItemToTree(hwndTv, pInfo, parent);
+					//FileNames.insert(sPath);
+					ListDirectoryContents(hwndTv, sPath, localParent); // Recursion
+				}
+			}
+			else
+			{
+				if ((fdFile.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN) == 0)
+				{
+					//Files
+					LPFINFO pInfo = CreateProjectFileInfo(fdFile.cFileName, sPath, FileType::PFILE);
+					AddItemToTree(hwndTv, pInfo, parent);
+					FileNames.push_back(sPath);	
+				}
+			}
+		}
+	} while (FindNextFile(hFind, &fdFile));
+
+	FindClose(hFind);
+
+	for (auto FileName = FileNames.begin(); FileName != FileNames.end(); ++FileName)
+	{
+		//AddItemToTree(hwndTv, fdFile.cFileName, parent);
+	}
+
+	return true;
+}

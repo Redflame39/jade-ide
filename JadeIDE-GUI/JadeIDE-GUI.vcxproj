@@ -141,6 +141,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="dialog.h" />
     <ClInclude Include="FilesFunctions.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="JadeIDE.h" />
@@ -152,6 +153,7 @@
     <ClInclude Include="wndproc.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="dialog.cpp" />
     <ClCompile Include="FilesFunctions.cpp" />
     <ClCompile Include="JadeIDE.cpp" />
     <ClCompile Include="redit.cpp" />

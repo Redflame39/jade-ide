@@ -7,7 +7,6 @@
 #include "JadeIDE.h"
 #include <CommCtrl.h>
 #include <Richedit.h>
-#include <shlobj_core.h>
 #include <vector>
 #include <strsafe.h>
 #include <minwinbase.h>
@@ -115,82 +114,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    return TRUE;
 }
 
-LPCTSTR OpenDirectory(HWND hwndOwner)
-{
-    BROWSEINFO bInfo;
-    ZeroMemory(&bInfo, sizeof(BROWSEINFO));
-    static TCHAR folderBuf[MAX_PATH];
-
-    bInfo.hwndOwner = hwndOwner;
-    bInfo.pidlRoot = NULL;
-    bInfo.pszDisplayName = folderBuf;
-    bInfo.lpszTitle = L"Specify project folder\0";
-    bInfo.ulFlags = BIF_NEWDIALOGSTYLE | BIF_SHAREABLE;
-
-    PIDLIST_ABSOLUTE pidl = SHBrowseForFolder(&bInfo);
-
-    if (!pidl) 
-    {
-        return NULL;
-    }
-
-    SHGetPathFromIDList(pidl, folderBuf);
-    return folderBuf;
-}
-
-BOOL ListDirectoryContents(const TCHAR* sDir, HTREEITEM parent)
-{
-    WIN32_FIND_DATA fdFile;
-    HANDLE hFind = 0;
-    std::vector<std::wstring> FileNames;
-
-    TCHAR sPath[2048];
-    _stprintf_s(sPath, TEXT("%s\\*.*"), sDir);
-
-    if ((hFind = FindFirstFile(sPath, &fdFile)) == INVALID_HANDLE_VALUE)
-    {
-        return FALSE;
-    }
-    do
-    {
-        if (_tcscmp(fdFile.cFileName, TEXT(".")) != 0 && _tcscmp(fdFile.cFileName, TEXT("..")) != 0)
-        {
-            _stprintf_s(sPath, TEXT("%s\\%s"), sDir, fdFile.cFileName);
-            if ((fdFile.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
-            {
-                if ((fdFile.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN) == 0)
-                {
-                    HTREEITEM localParent;
-                    LPFINFO pInfo = CreateProjectFileInfo(fdFile.cFileName, sPath, FileType::PDIRECTORY);
-                    // Directories
-                    localParent = AddItemToTree(hwndTv, pInfo, parent);
-                    //FileNames.insert(sPath);
-                    ListDirectoryContents(sPath, localParent); // Recursion
-                }
-            }
-            else
-            {
-                if ((fdFile.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN) == 0)
-                {
-                    //Files
-                    LPFINFO pInfo = CreateProjectFileInfo(fdFile.cFileName, sPath, FileType::PFILE);
-                    AddItemToTree(hwndTv, pInfo, parent);
-                    FileNames.push_back(sPath);
-                }
-            }
-        }
-    } while (FindNextFile(hFind, &fdFile));
-
-    FindClose(hFind);
-
-    for (auto FileName = FileNames.begin(); FileName != FileNames.end(); ++FileName)
-    {
-        //AddItemToTree(hwndTv, fdFile.cFileName, parent);
-    }
-
-    return true;
-}
-
 //
 //  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
 //
@@ -275,7 +198,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 break;
             case IDM_CREATE_PROJECT:
             {
-
+                DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_CREATEPROJECTBOX), hWnd, CreateProjectDialog, (LPARAM)hwndTv);
             }
             break;
             case IDM_OPEN_PROJECT:
@@ -292,7 +215,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 LPFINFO pInfo = CreateProjectFileInfo(const_cast<LPTSTR>(path), const_cast<LPTSTR>(path), FileType::PROOT);
                 treeRoot = AddItemToTree(hwndTv, pInfo, TVI_ROOT);
-                ListDirectoryContents(path, treeRoot);
+                ListDirectoryContents(hwndTv, path, treeRoot);
                 break;
             }
             case IDM_CLOSE_PROJECT:
