@@ -2,7 +2,6 @@
 
 TCHAR* GetDialogInput(HWND hDlg)
 {
-    TCHAR dialogText[256];
 
     WORD length = (WORD)SendDlgItemMessage(hDlg,
         IDC_NEWFILETEXT,
@@ -19,6 +18,8 @@ TCHAR* GetDialogInput(HWND hDlg)
         EndDialog(hDlg, TRUE);
         return FALSE;
     }
+
+    TCHAR* dialogText = new TCHAR[length];
 
     // Get the characters. 
     SendDlgItemMessage(hDlg,

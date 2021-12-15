@@ -3,8 +3,8 @@
 
 BOOL AddProjectItem(const TCHAR* parent, const TCHAR* fileName, FileType fType)
 {
-	TCHAR *newFilePath = new TCHAR[2048];
-	BOOL created;
+	TCHAR* newFilePath = new TCHAR[2048];
+	BOOL created = FALSE;
 
 	_stprintf_s(newFilePath, 2048, TEXT("%s\\%s"), parent, fileName);
 
@@ -14,11 +14,15 @@ BOOL AddProjectItem(const TCHAR* parent, const TCHAR* fileName, FileType fType)
 	{
 		HANDLE hFile = CreateFile(newFilePath, NULL, NULL, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
 
-		if (hFile == NULL)
+		if (hFile == INVALID_HANDLE_VALUE)
 		{
 			created = FALSE;
 		}
-		CloseHandle(hFile);
+		else 
+		{
+			CloseHandle(hFile);
+			created = TRUE;
+		}
 	}
 		break;
 	case PDIRECTORY:

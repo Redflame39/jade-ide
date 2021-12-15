@@ -24,7 +24,7 @@ WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 HWND hwndTv;
 HWND hwndRedit;
 HTREEITEM treeRoot = NULL;
-HANDLE hCurrentFile = NULL;
+LPFINFO lpCurrentFile = NULL;
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -186,12 +186,117 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
     }
     break;
+    case WM_NOTIFY:
+    {
+        switch (((LPNMHDR)lParam)->code)
+        {
+        case NM_DBLCLK:
+        {
+            LPFINFO fInfo = GetSelectedProjectFileInfo(hwndTv);
+
+            if (fInfo->fType != FileType::PFILE)
+            {
+                break;
+            }
+
+            HANDLE hCurrentFile = CreateFile(fInfo->fileFullPath,
+                GENERIC_READ | GENERIC_WRITE,
+                NULL,
+                NULL,
+                OPEN_EXISTING,
+                FILE_ATTRIBUTE_NORMAL,
+                NULL);
+
+            if (hCurrentFile != INVALID_HANDLE_VALUE)
+            {
+                LARGE_INTEGER li;
+
+                if (GetFileSizeEx(hCurrentFile, &li))
+                {
+                    long size = li.QuadPart;
+                    BYTE* buffer = new BYTE[size];
+                    buffer[0] = _T('\0');
+                    SetFilePointer(hCurrentFile, 0, 0, FILE_BEGIN);
+                    if (ReadFile(hCurrentFile, buffer, size, NULL, NULL))
+                    {
+                        buffer[size] = _T('\0');
+                        SETTEXTEX gt;
+                        gt.flags = ST_DEFAULT;
+                        gt.codepage = CP_ACP;
+                        if (!SendMessage(hwndRedit, EM_SETTEXTEX, (WPARAM)&gt, (LPARAM)buffer))
+                        {
+                            MessageBox(hWnd, L"Failed to open file", L"Error", MB_OK);
+                        }
+                        lpCurrentFile = fInfo;
+                    }
+                    else
+                    {
+                        MessageBox(hWnd, L"Failed to open file", L"Error", MB_OK);
+                    }
+                }
+                else
+                {
+                    MessageBox(hWnd, L"Failed to open file", L"Error", MB_OK);
+                }
+            }
+            CloseHandle(hCurrentFile);
+        }
+        break;
+        default:
+            break;
+        }
+    }
     case WM_COMMAND:
         {
             int wmId = LOWORD(wParam);
             // Parse the menu selections:
             switch (wmId)
             {
+            case IDM_SAVE_FILE:
+            {
+                if (lpCurrentFile == NULL)
+                {
+                    break;
+                }
+
+                HANDLE hCurrentFile = CreateFile(lpCurrentFile->fileFullPath,
+                    GENERIC_WRITE,
+                    NULL,
+                    NULL,
+                    OPEN_EXISTING,
+                    FILE_ATTRIBUTE_NORMAL,
+                    NULL);
+
+                if (hCurrentFile != INVALID_HANDLE_VALUE)
+                {
+                    GETTEXTLENGTHEX tl;
+                    tl.codepage = 1200;
+                    tl.flags = GTL_NUMBYTES;
+                    long length = SendMessage(hwndRedit, EM_GETTEXTLENGTHEX, (WPARAM)&tl, NULL);
+
+                    BYTE* buffer = new BYTE[length];
+                    GETTEXTEX gt;
+                    gt.cb = length;
+                    gt.flags = GT_DEFAULT;
+                    gt.codepage = 1200;
+                    gt.lpDefaultChar = NULL;
+                    gt.lpUsedDefChar = NULL;
+                    SendMessage(hwndRedit, EM_GETTEXTEX, (WPARAM)&gt, (LPARAM)buffer);
+                    //buffer[length]= _T('\0');
+
+                    if (!WriteFile(hCurrentFile, buffer, length-2, NULL, NULL))
+                    {
+                        MessageBox(hWnd, L"Failed to save file", L"Error", MB_OK);
+                    }
+                    delete[] buffer;
+                } 
+                else
+                {
+                    MessageBox(hWnd, L"Failed to open file for saving", L"Error", MB_OK);
+                }
+                CloseHandle(hCurrentFile);
+            }
+            break;
             case IDM_ABOUT:
                 DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
                 break;
@@ -269,7 +374,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 LPFINFO fInfo = GetSelectedProjectFileInfo(hwndTv);
 
-                hCurrentFile = CreateFile(fInfo->fileFullPath,
+                HANDLE hCurrentFile = CreateFile(fInfo->fileFullPath,
                     GENERIC_READ | GENERIC_WRITE,
                     NULL,
                     NULL,
@@ -297,6 +402,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                             {
                                 MessageBox(hWnd, L"Failed to open file", L"Error", MB_OK);
                             }
+                            lpCurrentFile = fInfo;
                         }
                         else
                         {
@@ -398,6 +504,30 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             EndPaint(hWnd, &ps);
         }
         break;
+    case WM_SIZE:
+    {
+        RECT rect;
+        GetClientRect(hWnd, &rect);
+
+        //treeview
+        SetWindowPos(hwndTv,
+            NULL,
+            0,
+            0,
+            rect.right * 0.25,
+            rect.bottom,
+            NULL);
+
+        //richedit
+        SetWindowPos(hwndRedit,
+            NULL,
+            rect.right * 0.25,
+            rect.top,
+            rect.right,
+            rect.bottom,
+            0);
+    }
+    break;
     case WM_DESTROY:
         PostQuitMessage(0);
         break;

@@ -25,7 +25,7 @@ INT_PTR CALLBACK CreateFileDialog(HWND hDlg, UINT message, WPARAM wParam, LPARAM
     switch (message)
     {
     case WM_INITDIALOG:
-        SetWindowLongPtr(hDlg, GWLP_USERDATA, (LONG)lParam);
+        SetWindowLongPtr(hDlg, GWLP_USERDATA, (LONG_PTR)lParam);
         return (INT_PTR)TRUE;
 
     case WM_COMMAND:
@@ -35,20 +35,26 @@ INT_PTR CALLBACK CreateFileDialog(HWND hDlg, UINT message, WPARAM wParam, LPARAM
 
             LPCFDATA cfData = (LPCFDATA)GetWindowLongPtr(hDlg, GWLP_USERDATA);
 
-            BOOL added = AddProjectItem(cfData->parentPath, newFileName, cfData->createType);
+            if (AddProjectItem(cfData->parentPath, newFileName, cfData->createType))
+            {
+                size_t newFileLength = _tcslen(cfData->parentPath) + _tcslen(newFileName) + _tcslen(_T("\\")) + 1;
+                TCHAR* newFilePath = new TCHAR[newFileLength];
+                newFilePath[0] = _T('\0');
 
-            size_t newFileLength = sizeof(cfData->parentPath) + sizeof(newFileName) + sizeof(_T("\\")) + 1;
-            TCHAR* newFilePath = new TCHAR[newFileLength];
-            newFilePath[0] = _T('\0');
+                //_tcscat_s(newFilePath, newFileLength - _tcslen(newFilePath), cfData->parentPath);
+                //_tcscat_s(newFilePath, newFileLength - _tcslen(newFilePath), _T("\\"));
+                //_tcscat_s(newFilePath, newFileLength - _tcslen(newFilePath), newFileName);
 
-            _tcscat_s(newFilePath, newFileLength - _tcslen(newFilePath), cfData->parentPath);
-            _tcscat_s(newFilePath, newFileLength - _tcslen(newFilePath), _T("\\"));
-            _tcscat_s(newFilePath, newFileLength - _tcslen(newFilePath), newFileName);
+                _stprintf_s(newFilePath, newFileLength, TEXT("%s\\%s"), cfData->parentPath, newFileName);
 
-            LPFINFO fInfo = CreateProjectFileInfo(newFileName, newFilePath, cfData->createType);
-            
-            AddItemToTree(cfData->hwndTv, fInfo, cfData->parentNode);
+                LPFINFO fInfo = CreateProjectFileInfo(newFileName, newFilePath, cfData->createType);
 
+                AddItemToTree(cfData->hwndTv, fInfo, cfData->parentNode);
+            }
+            else
+            {
+                MessageBox(hDlg, L"Failed to create new file", L"Error", MB_OK);
+            }
             EndDialog(hDlg, LOWORD(wParam));
             return (INT_PTR)TRUE;
         }
@@ -67,7 +73,7 @@ INT_PTR CALLBACK RenameFileDialog(HWND hDlg, UINT message, WPARAM wParam, LPARAM
     switch (message)
     {
     case WM_INITDIALOG:
-        SetWindowLongPtr(hDlg, GWLP_USERDATA, (LONG)lParam);
+        SetWindowLongPtr(hDlg, GWLP_USERDATA, (LONG_PTR)lParam);
         return (INT_PTR)TRUE;
 
     case WM_COMMAND:
@@ -125,8 +131,6 @@ INT_PTR CALLBACK CreateProjectDialog(HWND hDlg, UINT message, WPARAM wParam, LPA
         if (LOWORD(wParam) == IDOK)
         {
             TCHAR* newProjectName = GetDialogInput(hDlg);
-
-
 
             EndDialog(hDlg, LOWORD(wParam));
             return (INT_PTR)TRUE;
