@@ -22,3 +22,5 @@ TCHAR* ReplaceFileName(TCHAR* oldFilePath, TCHAR* newFileName);
 LPCTSTR OpenDirectory(HWND hwndOwner);
 
 BOOL ListDirectoryContents(HWND hwndTv, const TCHAR* sDir, HTREEITEM parent);
+
+LPFINFO GetSelectedProjectFileInfo(HWND hwndTv);

@@ -81,13 +81,13 @@
     <Image Include="JadeIDE-GUI.ico">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="root.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="file.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="package.BMP">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="root.BMP">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="file.BMP">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

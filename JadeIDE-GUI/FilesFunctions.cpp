@@ -171,3 +171,14 @@ BOOL ListDirectoryContents(HWND hwndTv, const TCHAR* sDir, HTREEITEM parent)
 
 	return true;
 }
+
+LPFINFO GetSelectedProjectFileInfo(HWND hwndTv)
+{
+	HTREEITEM hti = TreeView_GetSelection(hwndTv);
+	TVITEM item;
+	item.hItem = hti;
+	item.mask = TVIF_PARAM;
+	TreeView_GetItem(hwndTv, &item);
+	LPFINFO fInfo = (LPFINFO)item.lParam;
+	return fInfo;
+}

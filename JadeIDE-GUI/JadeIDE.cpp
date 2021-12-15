@@ -22,7 +22,9 @@ HINSTANCE hInst;                                // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 HWND hwndTv;
+HWND hwndRedit;
 HTREEITEM treeRoot = NULL;
+HANDLE hCurrentFile = NULL;
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -130,7 +132,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
     case WM_CREATE:
     {
-        CreateRichEdit(hWnd, hInst);
+        hwndRedit = CreateRichEdit(hWnd, hInst);
         hwndTv = CreateATreeView(hInst, hWnd);
     }
     break;
@@ -265,7 +267,48 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
             case IDM_CONTEXTOPEN:
             {
-                MessageBox(hWnd, L"", L"", MB_OK);
+                LPFINFO fInfo = GetSelectedProjectFileInfo(hwndTv);
+
+                hCurrentFile = CreateFile(fInfo->fileFullPath,
+                    GENERIC_READ | GENERIC_WRITE,
+                    NULL,
+                    NULL,
+                    OPEN_EXISTING,
+                    FILE_ATTRIBUTE_NORMAL,
+                    NULL);
+
+                if (hCurrentFile != INVALID_HANDLE_VALUE)
+                {
+                    LARGE_INTEGER li;
+
+                    if (GetFileSizeEx(hCurrentFile, &li))
+                    {
+                        long size = li.QuadPart;
+                        BYTE* buffer = new BYTE[size];
+                        buffer[0] = _T('\0');
+                        SetFilePointer(hCurrentFile, 0, 0, FILE_BEGIN);
+                        if (ReadFile(hCurrentFile, buffer, size, NULL, NULL))
+                        {
+                            buffer[size] = _T('\0');
+                            SETTEXTEX gt;
+                            gt.flags = ST_DEFAULT;
+                            gt.codepage = CP_ACP;
+                            if (!SendMessage(hwndRedit, EM_SETTEXTEX, (WPARAM)&gt, (LPARAM)buffer))
+                            {
+                                MessageBox(hWnd, L"Failed to open file", L"Error", MB_OK);
+                            }
+                        }
+                        else
+                        {
+                            MessageBox(hWnd, L"Failed to open file", L"Error", MB_OK);
+                        }
+                    }
+                    else
+                    {
+                        MessageBox(hWnd, L"Failed to open file", L"Error", MB_OK);
+                    }
+                }
+                CloseHandle(hCurrentFile);
             }
             break;
             case IDM_CONTEXTDELETE:

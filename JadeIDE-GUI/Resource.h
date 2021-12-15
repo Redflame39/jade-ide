@@ -29,9 +29,9 @@
 #define IDC_SELECTPROJECTFOLD   301
 #define IDC_NEWPROJECTFOLDER    302
 #define IDC_MYICON				2
-#define IDB_FOLDERTREEICO       401
-#define IDB_FILETREEICO         402
-#define IDB_ROOTTREEICO         403
+#define IDB_FOLDERTREEICO       501
+#define IDB_FILETREEICO         502
+#define IDB_ROOTTREEICO         503
 #ifndef IDC_STATIC
 #define IDC_STATIC				-1
 #endif

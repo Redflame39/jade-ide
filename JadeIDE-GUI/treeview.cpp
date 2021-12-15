@@ -143,7 +143,7 @@ BOOL InitTreeViewImageLists(HINSTANCE hInst, HWND hwndTV)
     // Associate the image list with the tree-view control. 
     TreeView_SetImageList(hwndTV, himl, TVSIL_NORMAL);
 
-    SetWindowLongPtr(hwndTV, GWLP_USERDATA, (LONG)lptiData);
+    SetWindowLongPtr(hwndTV, GWLP_USERDATA, (LONG_PTR)lptiData);
 
     return TRUE;
 }

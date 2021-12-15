@@ -165,10 +165,10 @@
     <ResourceCompile Include="JadeIDE-GUI.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="file.bmp" />
-    <Image Include="package.BMP" />
-    <Image Include="root.bmp" />
+    <Image Include="file.BMP" />
     <Image Include="JadeIDE-GUI.ico" />
+    <Image Include="package.BMP" />
+    <Image Include="root.BMP" />
     <Image Include="small.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
