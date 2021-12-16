@@ -11,11 +11,19 @@ enum FileType
     PROOT
 };
 
+typedef struct ControlHandles
+{
+    HWND hwndTv;
+    HWND hwndRedit;
+} HCSTRUCT, *LPHCSTRUCT;
+
 typedef struct ProjectFileInfo 
 {
     TCHAR* fileFullPath;
     TCHAR* fileName;
     FileType fType;
+    BOOL isMain;
+    BOOL isSource;
 } FINFO, * LPFINFO;
 
 typedef struct CreateFileData 

@@ -7,6 +7,7 @@
 #include "treeview.h"
 #include "redit.h"
 #include <shlwapi.h>
+#include "handlers.h"
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);

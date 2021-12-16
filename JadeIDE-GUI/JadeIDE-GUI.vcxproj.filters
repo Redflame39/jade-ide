@@ -45,6 +45,12 @@
     <ClInclude Include="dialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="handlers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="build.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="JadeIDE.cpp">
@@ -71,6 +77,9 @@
     <ClCompile Include="buttons.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="handlers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="JadeIDE-GUI.rc">
@@ -91,6 +100,12 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="file.BMP">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="main.BMP">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="source.BMP">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

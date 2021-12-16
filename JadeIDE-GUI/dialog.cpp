@@ -1,10 +1,10 @@
 #include "dialog.h"
 
-TCHAR* GetDialogInput(HWND hDlg)
+TCHAR* GetDialogInput(HWND hDlg, long inputId)
 {
 
     WORD length = (WORD)SendDlgItemMessage(hDlg,
-        IDC_NEWFILETEXT,
+        inputId,
         EM_LINELENGTH,
         (WPARAM)0,
         (LPARAM)0);
@@ -23,7 +23,7 @@ TCHAR* GetDialogInput(HWND hDlg)
 
     // Get the characters. 
     SendDlgItemMessage(hDlg,
-        IDC_NEWFILETEXT,
+        inputId,
         EM_GETLINE,
         (WPARAM)0,       // line 0 
         (LPARAM)dialogText);

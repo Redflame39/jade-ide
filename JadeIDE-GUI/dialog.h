@@ -4,4 +4,4 @@
 #include <tchar.h>
 #include "Resource.h"
 
-TCHAR* GetDialogInput(HWND hDlg);
+TCHAR* GetDialogInput(HWND hDlg, long inputId);

@@ -14,3 +14,16 @@ HWND CreateRichEdit(HWND hwndOwner,        // Dialog box handle.
 
     return hwndEdit;
 }
+
+BOOL SetTextToREdit(HWND hWnd, HWND hwndRedit, BYTE* text)
+{
+    SETTEXTEX st;
+    st.flags = ST_UNICODE;
+    st.codepage = 1200;
+    if (!SendMessage(hwndRedit, EM_SETTEXTEX, (WPARAM)&st, (LPARAM)text))
+    {
+        MessageBox(hWnd, L"Failed to open file", L"Error", MB_OK);
+        return FALSE;
+    }
+    return TRUE;
+}

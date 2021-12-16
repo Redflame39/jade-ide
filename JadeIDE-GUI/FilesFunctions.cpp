@@ -72,6 +72,17 @@ TCHAR* ReplaceFileName(TCHAR* oldFilePath, TCHAR* newFileName)
 	return newFilePath;
 }
 
+TCHAR* AppendFileName(TCHAR* baseFilePath, TCHAR* fileName)
+{
+	size_t newPathSize = _tcslen(baseFilePath) + _tcslen(fileName) + _tcslen(_T("\\")) + 1;
+
+	TCHAR* newPath = new TCHAR[newPathSize];
+
+	_stprintf_s(newPath, newPathSize, TEXT("%s\\%s"), baseFilePath, fileName);
+
+	return newPath;
+}
+
 BOOL DeleteProjectFile(TCHAR* fullPath)
 {
 	return DeleteFile(fullPath);
@@ -127,7 +138,6 @@ BOOL ListDirectoryContents(HWND hwndTv, const TCHAR* sDir, HTREEITEM parent)
 {
 	WIN32_FIND_DATA fdFile;
 	HANDLE hFind = 0;
-	std::vector<std::wstring> FileNames;
 
 	TCHAR sPath[2048];
 	_stprintf_s(sPath, TEXT("%s\\*.*"), sDir);
@@ -138,7 +148,7 @@ BOOL ListDirectoryContents(HWND hwndTv, const TCHAR* sDir, HTREEITEM parent)
 	}
 	do
 	{
-		if (_tcscmp(fdFile.cFileName, TEXT(".")) != 0 && _tcscmp(fdFile.cFileName, TEXT("..")) != 0)
+		if (_tcscmp(fdFile.cFileName, TEXT(".")) != 0 && _tcscmp(fdFile.cFileName, TEXT("..")) != 0 && _tcscmp(fdFile.cFileName, TEXT("src")) != 0)
 		{
 			_stprintf_s(sPath, TEXT("%s\\%s"), sDir, fdFile.cFileName);
 			if ((fdFile.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
@@ -149,7 +159,6 @@ BOOL ListDirectoryContents(HWND hwndTv, const TCHAR* sDir, HTREEITEM parent)
 					LPFINFO pInfo = CreateProjectFileInfo(fdFile.cFileName, sPath, FileType::PDIRECTORY);
 					// Directories
 					localParent = AddItemToTree(hwndTv, pInfo, parent);
-					//FileNames.insert(sPath);
 					ListDirectoryContents(hwndTv, sPath, localParent); // Recursion
 				}
 			}
@@ -160,7 +169,6 @@ BOOL ListDirectoryContents(HWND hwndTv, const TCHAR* sDir, HTREEITEM parent)
 					//Files
 					LPFINFO pInfo = CreateProjectFileInfo(fdFile.cFileName, sPath, FileType::PFILE);
 					AddItemToTree(hwndTv, pInfo, parent);
-					FileNames.push_back(sPath);	
 				}
 			}
 		}
@@ -168,21 +176,81 @@ BOOL ListDirectoryContents(HWND hwndTv, const TCHAR* sDir, HTREEITEM parent)
 
 	FindClose(hFind);
 
-	for (auto FileName = FileNames.begin(); FileName != FileNames.end(); ++FileName)
-	{
-		//AddItemToTree(hwndTv, fdFile.cFileName, parent);
-	}
-
 	return true;
 }
 
 LPFINFO GetSelectedProjectFileInfo(HWND hwndTv)
 {
 	HTREEITEM hti = TreeView_GetSelection(hwndTv);
+	if (hti == NULL)
+		return NULL;
 	TVITEM item;
 	item.hItem = hti;
 	item.mask = TVIF_PARAM;
 	TreeView_GetItem(hwndTv, &item);
 	LPFINFO fInfo = (LPFINFO)item.lParam;
 	return fInfo;
+}
+
+BOOL CreateMainPropertyFile(LPFINFO fInfo)
+{
+	TCHAR fileName[] = TEXT("mainclass");
+	TCHAR* fullName = ReplaceFileName(fInfo->fileFullPath, fileName);
+
+	return WriteToFile(fullName, fInfo->fileFullPath);
+}
+
+BYTE* ReadFileData(TCHAR* filePath)
+{
+	HANDLE hCurrentFile = CreateFile(filePath,
+		GENERIC_READ,
+		NULL,
+		NULL,
+		OPEN_EXISTING,
+		FILE_ATTRIBUTE_NORMAL,
+		NULL);
+
+	LARGE_INTEGER li;
+	GetFileSizeEx(hCurrentFile, &li);
+	long size = li.QuadPart;
+	BYTE* buffer = new BYTE[size];
+	ReadFile(hCurrentFile, buffer, sizeof(buffer), NULL, NULL);
+	buffer[size] = _T('\0');
+	CloseHandle(hCurrentFile);
+	return buffer;
+}
+
+BOOL WriteToFile(TCHAR* filePath, TCHAR* toWrite)
+{
+	HANDLE hFile = CreateFile(
+		filePath,
+		GENERIC_WRITE,
+		NULL,
+		NULL,
+		OPEN_ALWAYS,
+		FILE_ATTRIBUTE_NORMAL,
+		NULL);
+
+	if (hFile == INVALID_HANDLE_VALUE)
+	{
+		return FALSE;
+	}
+
+	BOOL writed = WriteFile(hFile, toWrite, _tcslen(toWrite) * sizeof(TCHAR), NULL, NULL);
+	CloseHandle(hFile);
+	return writed;
+}
+
+BOOL IsPackageExists(TCHAR* path)
+{
+	BOOL result = CreateDirectory(path, NULL);
+	if (result == 0)
+	{
+		DWORD err = GetLastError();
+		return err == ERROR_ALREADY_EXISTS;
+	}
+	else
+	{
+		return FALSE;
+	}
 }

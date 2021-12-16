@@ -141,9 +141,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="build.h" />
     <ClInclude Include="dialog.h" />
     <ClInclude Include="FilesFunctions.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="handlers.h" />
     <ClInclude Include="JadeIDE.h" />
     <ClInclude Include="redit.h" />
     <ClInclude Include="Resource.h" />
@@ -156,6 +158,7 @@
     <ClCompile Include="buttons.cpp" />
     <ClCompile Include="dialog.cpp" />
     <ClCompile Include="FilesFunctions.cpp" />
+    <ClCompile Include="handlers.cpp" />
     <ClCompile Include="JadeIDE.cpp" />
     <ClCompile Include="redit.cpp" />
     <ClCompile Include="structures.cpp" />
@@ -168,9 +171,11 @@
   <ItemGroup>
     <Image Include="file.BMP" />
     <Image Include="JadeIDE-GUI.ico" />
+    <Image Include="main.BMP" />
     <Image Include="package.BMP" />
     <Image Include="root.BMP" />
     <Image Include="small.ico" />
+    <Image Include="source.BMP" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

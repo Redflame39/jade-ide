@@ -20,20 +20,23 @@
 #define IDD_RENAMEFILEBOX               122
 #define IDD_CREATEPROJECTBOX            123
 #define IDR_MAINFRAME                   128
+#define IDM_BUILD_RUN                   131
+#define IDM_BUILD_SELECTJDK             132
 #define IDC_TREEVIEWCONTEXT             200
 #define IDM_CONTEXTOPEN                 201
 #define IDM_CONTEXTDELETE               202
 #define IDM_CONTEXTRENAME               203
 #define IDM_CONTEXTCREATEFILE           211
 #define IDM_CONTEXTCREATEPACKAGE        212
+#define IDM_CONTEXT_MARK_AS_MAIN         221
 #define IDC_NEWFILETEXT                 300
 #define IDC_SELECTPROJECTFOLD           301
 #define IDC_NEWPROJECTFOLDER            302
 #define IDB_FOLDERTREEICO               501
 #define IDB_FILETREEICO                 502
 #define IDB_ROOTTREEICO                 503
-#define ID_BUILD_RUN                    32772
-#define ID_BUILD_SELECTJDK              32773
+#define IDB_MAINTREEICO                 504
+#define IDB_SRCTREEICO                  505
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
@@ -42,7 +45,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        129
-#define _APS_NEXT_COMMAND_VALUE         32774
+#define _APS_NEXT_COMMAND_VALUE         32775
 #define _APS_NEXT_CONTROL_VALUE         1000
 #define _APS_NEXT_SYMED_VALUE           110
 #endif

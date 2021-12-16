@@ -31,7 +31,7 @@ INT_PTR CALLBACK CreateFileDialog(HWND hDlg, UINT message, WPARAM wParam, LPARAM
     case WM_COMMAND:
         if (LOWORD(wParam) == IDOK)
         {
-            TCHAR* newFileName = GetDialogInput(hDlg);
+            TCHAR* newFileName = GetDialogInput(hDlg, IDC_NEWFILETEXT);
 
             LPCFDATA cfData = (LPCFDATA)GetWindowLongPtr(hDlg, GWLP_USERDATA);
 
@@ -79,7 +79,7 @@ INT_PTR CALLBACK RenameFileDialog(HWND hDlg, UINT message, WPARAM wParam, LPARAM
     case WM_COMMAND:
         if (LOWORD(wParam) == IDOK)
         {
-            TCHAR* newFileName = GetDialogInput(hDlg);
+            TCHAR* newFileName = GetDialogInput(hDlg, IDC_NEWFILETEXT);
 
             LPRFDATA rfData = (LPRFDATA)GetWindowLongPtr(hDlg, GWLP_USERDATA);
 
@@ -130,9 +130,39 @@ INT_PTR CALLBACK CreateProjectDialog(HWND hDlg, UINT message, WPARAM wParam, LPA
     case WM_COMMAND:
         if (LOWORD(wParam) == IDOK)
         {
-            TCHAR* newProjectName = GetDialogInput(hDlg);
+            TCHAR* newProjectName = GetDialogInput(hDlg, IDC_NEWPROJECTFOLDER);
 
-            EndDialog(hDlg, LOWORD(wParam));
+            HWND hwndTv = (HWND)GetWindowLongPtr(hDlg, GWLP_USERDATA);
+
+            LPFINFO fRootInfo = new FINFO;
+
+            fRootInfo->fileFullPath = const_cast<TCHAR*>(newProjectName);
+            fRootInfo->fileName = const_cast<TCHAR*>(newProjectName);
+            fRootInfo->fType = FileType::PROOT;
+
+            HTREEITEM hti = AddItemToTree(hwndTv, fRootInfo, TVI_ROOT);
+
+            TCHAR* src = const_cast<TCHAR*>(TEXT("src"));
+            TCHAR* srcPath = AppendFileName(fRootInfo->fileFullPath, src);
+            if (!IsPackageExists(srcPath))
+            {
+                AddProjectItem(fRootInfo->fileFullPath, src, FileType::PDIRECTORY);
+            }
+
+            LPFINFO fSrcInfo = new FINFO;
+
+            fSrcInfo->fileFullPath = srcPath;
+            fSrcInfo->fileName = src;
+            fSrcInfo->fType = PDIRECTORY;
+            fSrcInfo->isSource = TRUE;
+
+            HTREEITEM hSrc = AddItemToTree(hwndTv, fSrcInfo, hti);
+
+            MarkPackageAsSource(hwndTv, hSrc);
+
+            ListDirectoryContents(hwndTv, newProjectName, hti);
+
+            EndDialog(hDlg, (INT_PTR)hti);
             return (INT_PTR)TRUE;
         }
         if (LOWORD(wParam) == IDCANCEL)
@@ -162,18 +192,6 @@ INT_PTR CALLBACK CreateProjectDialog(HWND hDlg, UINT message, WPARAM wParam, LPA
                 EM_REPLACESEL,
                 (WPARAM)FALSE,
                 (LPARAM)path);
-
-            HWND hwndTv = (HWND)GetWindowLongPtr(hDlg, GWLP_USERDATA);
-
-            LPFINFO fInfo = new FINFO;
-
-            fInfo->fileFullPath = const_cast<TCHAR*>(path);
-            fInfo->fileName = const_cast<TCHAR*>(path);
-            fInfo->fType = FileType::PROOT;
-
-            HTREEITEM hti = AddItemToTree(hwndTv, fInfo, TVI_ROOT);
-
-            ListDirectoryContents(hwndTv, path, hti);
 
             return (INT_PTR)TRUE;
         }

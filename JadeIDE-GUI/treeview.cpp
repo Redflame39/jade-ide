@@ -136,8 +136,16 @@ BOOL InitTreeViewImageLists(HINSTANCE hInst, HWND hwndTV)
     lptiData->rootIconId = ImageList_Add(himl, hbmp, (HBITMAP)NULL);
     DeleteObject(hbmp);
 
+    hbmp = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_MAINTREEICO));
+    lptiData->mainIconId = ImageList_Add(himl, hbmp, (HBITMAP)NULL);
+    DeleteObject(hbmp);
+
+    hbmp = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_SRCTREEICO));
+    lptiData->srcIconId = ImageList_Add(himl, hbmp, (HBITMAP)NULL);
+    DeleteObject(hbmp);
+
     // Fail if not all of the images were added. 
-    if (ImageList_GetImageCount(himl) < 3)
+    if (ImageList_GetImageCount(himl) < 4)
         return FALSE;
 
     // Associate the image list with the tree-view control. 
@@ -146,4 +154,18 @@ BOOL InitTreeViewImageLists(HINSTANCE hInst, HWND hwndTV)
     SetWindowLongPtr(hwndTV, GWLP_USERDATA, (LONG_PTR)lptiData);
 
     return TRUE;
+}
+
+void MarkPackageAsSource(HWND hwndTv, HTREEITEM hti)
+{
+    TVITEM tvi;
+
+    LPTIDATA lptiData = (LPTIDATA)GetWindowLongPtr(hwndTv, GWLP_USERDATA);
+
+    tvi.hItem = hti;
+    tvi.mask = TVIF_IMAGE | TVIF_SELECTEDIMAGE;
+    tvi.iImage = lptiData->srcIconId;
+    tvi.iSelectedImage = lptiData->srcIconId;
+
+    TreeView_SetItem(hwndTv, &tvi);
 }
