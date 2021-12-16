@@ -24,7 +24,7 @@ LPFINFO OnFileOpen(HWND hWnd, HWND hwndRedit, HWND hwndTv)
         return NULL;
     }
 
-    BYTE* buffer = ReadFileData(fInfo->fileFullPath);
+    TCHAR* buffer = ReadFileData(fInfo->fileFullPath);
     SetTextToREdit(hWnd, hwndRedit, buffer);
     return fInfo;
 }
@@ -208,47 +208,18 @@ void OnContextMarkAsMain(HINSTANCE hInst, HWND hWnd, HWND hwndTv)
 
 void OnSaveFile(LPFINFO lpCurrentFile, HWND hWnd, HWND hwndRedit)
 {
-    HANDLE hCurrentFile = CreateFile(lpCurrentFile->fileFullPath,
-        GENERIC_WRITE,
-        NULL,
-        NULL,
-        OPEN_EXISTING,
-        FILE_ATTRIBUTE_NORMAL,
-        NULL);
 
-    if (hCurrentFile != INVALID_HANDLE_VALUE)
+    TCHAR* buffer = GetREditText(hWnd, hwndRedit);
+    if (!WriteToFile(lpCurrentFile->fileFullPath, buffer))
     {
-        GETTEXTLENGTHEX tl;
-        tl.codepage = 1200;
-        tl.flags = GTL_NUMBYTES;
-        long length = SendMessage(hwndRedit, EM_GETTEXTLENGTHEX, (WPARAM)&tl, NULL);
-
-        BYTE* buffer = new BYTE[length];
-        GETTEXTEX gt;
-        gt.cb = length;
-        gt.flags = GT_NOHIDDENTEXT;
-        gt.codepage = 1200;
-        gt.lpDefaultChar = NULL;
-        gt.lpUsedDefChar = NULL;
-        SendMessage(hwndRedit, EM_GETTEXTEX, (WPARAM)&gt, (LPARAM)buffer);
-        //buffer[length]= _T('\0');
-
-        if (!WriteFile(hCurrentFile, buffer, length - 2, NULL, NULL))
-        {
-            MessageBox(hWnd, L"Failed to save file", L"Error", MB_OK);
-        }
-        delete[] buffer;
+        MessageBox(hWnd, L"Failed to save file", L"Error", MB_OK);
     }
-    else
-    {
-        MessageBox(hWnd, L"Failed to open file for saving", L"Error", MB_OK);
-    }
-    CloseHandle(hCurrentFile);
 }
 
 HTREEITEM OnCreateProject(HINSTANCE hInst, HWND hWnd, HWND hwndTv)
 {
-    return (HTREEITEM)DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_CREATEPROJECTBOX), hWnd, CreateProjectDialog, (LPARAM)hwndTv);
+    HTREEITEM root = (HTREEITEM)DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_CREATEPROJECTBOX), hWnd, CreateProjectDialog, (LPARAM)hwndTv);
+    return root;
 }
 
 HTREEITEM OnOpenProject(HWND hWnd, HWND hwndTv, HTREEITEM treeRoot)

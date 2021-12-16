@@ -31,6 +31,8 @@ LPFINFO GetSelectedProjectFileInfo(HWND hwndTv);
 
 BOOL CreateMainPropertyFile(LPFINFO fInfo);
 
-BYTE* ReadFileData(TCHAR* filePath);
+TCHAR* ReadFileData(TCHAR* filePath);
+
+BOOL WriteToFile(TCHAR* filePath, BYTE* toWrite);
 
 BOOL WriteToFile(TCHAR* filePath, TCHAR* toWrite);

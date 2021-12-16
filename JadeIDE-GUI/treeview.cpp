@@ -169,3 +169,37 @@ void MarkPackageAsSource(HWND hwndTv, HTREEITEM hti)
 
     TreeView_SetItem(hwndTv, &tvi);
 }
+
+HTREEITEM FindByFullPath(HWND hwndTv, TCHAR* fullPath)
+{
+    HTREEITEM item = FindTreeItem(hwndTv, TVI_ROOT, fullPath);
+    return item;
+}
+
+HTREEITEM FindTreeItem(HWND hwndTv, HTREEITEM hParent, TCHAR* fullPath)
+{
+    HTREEITEM hChild = TreeView_GetChild(hwndTv, hParent);
+
+    while (hChild)
+    {
+        TVITEM tvi;
+        tvi.mask = TVIF_PARAM;
+        tvi.hItem = hChild;
+        TreeView_GetItem(hwndTv, &tvi);
+        LPFINFO fInfo = (LPFINFO)tvi.lParam;
+        if (!_tcscmp(fInfo->fileFullPath, fullPath))
+            return hChild;
+        if (fInfo->fType == FileType::PDIRECTORY)
+        {
+            HTREEITEM hti = FindTreeItem(hwndTv, hChild, fullPath);
+            if (hti != NULL)
+            {
+                return hti;
+            }
+        }
+
+        hChild = TreeView_GetNextSibling(hwndTv, hChild);
+    }
+
+    return NULL;
+}

@@ -1,5 +1,8 @@
 #include "FilesFunctions.h"
 #include <tchar.h>
+#include <fstream>
+
+using namespace std;
 
 BOOL AddProjectItem(const TCHAR* parent, const TCHAR* fileName, FileType fType)
 {
@@ -148,7 +151,7 @@ BOOL ListDirectoryContents(HWND hwndTv, const TCHAR* sDir, HTREEITEM parent)
 	}
 	do
 	{
-		if (_tcscmp(fdFile.cFileName, TEXT(".")) != 0 && _tcscmp(fdFile.cFileName, TEXT("..")) != 0 && _tcscmp(fdFile.cFileName, TEXT("src")) != 0)
+		if (_tcscmp(fdFile.cFileName, TEXT(".")) != 0 && _tcscmp(fdFile.cFileName, TEXT("..")) != 0)
 		{
 			_stprintf_s(sPath, TEXT("%s\\%s"), sDir, fdFile.cFileName);
 			if ((fdFile.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
@@ -200,7 +203,7 @@ BOOL CreateMainPropertyFile(LPFINFO fInfo)
 	return WriteToFile(fullName, fInfo->fileFullPath);
 }
 
-BYTE* ReadFileData(TCHAR* filePath)
+TCHAR* ReadFileData(TCHAR* filePath)
 {
 	HANDLE hCurrentFile = CreateFile(filePath,
 		GENERIC_READ,
@@ -211,13 +214,37 @@ BYTE* ReadFileData(TCHAR* filePath)
 		NULL);
 
 	LARGE_INTEGER li;
+
 	GetFileSizeEx(hCurrentFile, &li);
+
 	long size = li.QuadPart;
-	BYTE* buffer = new BYTE[size];
-	ReadFile(hCurrentFile, buffer, sizeof(buffer), NULL, NULL);
-	buffer[size] = _T('\0');
+	TCHAR* buffer = new TCHAR[size + 1];
+	ZeroMemory(buffer, size);
+	ReadFile(hCurrentFile, buffer, size, NULL, NULL);
+	buffer[size / sizeof(TCHAR)] = _T('\0');
 	CloseHandle(hCurrentFile);
 	return buffer;
+}
+
+BOOL WriteToFile(TCHAR* filePath, BYTE* toWrite)
+{
+	HANDLE hFile = CreateFile(
+		filePath,
+		GENERIC_WRITE,
+		NULL,
+		NULL,
+		OPEN_ALWAYS,
+		FILE_ATTRIBUTE_NORMAL,
+		NULL);
+
+	if (hFile == INVALID_HANDLE_VALUE)
+	{
+		return FALSE;
+	}
+
+	BOOL writed = WriteFile(hFile, toWrite, sizeof(toWrite), NULL, NULL);
+	CloseHandle(hFile);
+	return writed;
 }
 
 BOOL WriteToFile(TCHAR* filePath, TCHAR* toWrite)

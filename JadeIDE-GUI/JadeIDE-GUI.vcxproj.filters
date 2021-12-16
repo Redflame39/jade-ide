@@ -74,10 +74,10 @@
     <ClCompile Include="dialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="buttons.cpp">
+    <ClCompile Include="handlers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="handlers.cpp">
+    <ClCompile Include="build.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

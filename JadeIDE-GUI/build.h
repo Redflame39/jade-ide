@@ -1,5 +1,8 @@
 #pragma once
 
 #include <windows.h>
+#include "FilesFunctions.h"
 
-void BuildProject()
+void BuildProject();
+
+void LoadMainClass();

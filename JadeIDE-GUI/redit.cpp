@@ -15,15 +15,15 @@ HWND CreateRichEdit(HWND hwndOwner,        // Dialog box handle.
     return hwndEdit;
 }
 
-BOOL SetTextToREdit(HWND hWnd, HWND hwndRedit, BYTE* text)
+BOOL SetTextToREdit(HWND hWnd, HWND hwndRedit, TCHAR* text)
 {
-    SETTEXTEX st;
-    st.flags = ST_UNICODE;
-    st.codepage = 1200;
-    if (!SendMessage(hwndRedit, EM_SETTEXTEX, (WPARAM)&st, (LPARAM)text))
-    {
-        MessageBox(hWnd, L"Failed to open file", L"Error", MB_OK);
-        return FALSE;
-    }
-    return TRUE;
+    return SetWindowText(hwndRedit, (LPCWSTR)text);
+}
+
+TCHAR* GetREditText(HWND hWnd, HWND hwndRedit)
+{
+    int length = GetWindowTextLength(hwndRedit) + 1;
+    TCHAR* text = (TCHAR*)GlobalAlloc(GPTR, length);
+    GetWindowText(hwndRedit, text, length);
+    return text;
 }

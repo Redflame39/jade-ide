@@ -13,6 +13,10 @@ BOOL InitTreeViewImageLists(HINSTANCE hInst, HWND hwndTV);
 
 void MarkPackageAsSource(HWND hwndTv, HTREEITEM hti);
 
+HTREEITEM FindByFullPath(HWND hwndTv, TCHAR* fullPath);
+
+HTREEITEM FindTreeItem(HWND hwndTv, HTREEITEM hParent, TCHAR* fullPath);
+
 typedef struct TreeIconsData {
 	int rootIconId;
 	int fileIconId;
