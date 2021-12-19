@@ -22,7 +22,9 @@ void OnContextDelete(HINSTANCE hInst, HWND hWnd, HWND hwndTv);
 
 void OnContextRename(HINSTANCE hInst, HWND hWnd, HWND hwndTv);
 
-void OnContextMarkAsMain(HINSTANCE hInst, HWND hWnd, HWND hwndTv);
+HTREEITEM OnContextMarkAsMain(HINSTANCE hInst, HWND hWnd, HWND hwndTv, HTREEITEM htiOld);
+
+HTREEITEM OnContextMarkAsSrc(HINSTANCE hInst, HWND hWnd, HWND hwndTv, HTREEITEM htiOld);
 
 void OnSaveFile(LPFINFO lpCurrentFile, HWND hWnd, HWND hwndRedit);
 
@@ -32,7 +34,9 @@ HTREEITEM OnOpenProject(HWND hWnd, HWND hwndTv, HTREEITEM treeRoot);
 
 HTREEITEM OnCloseProject(HWND hwndTv, HTREEITEM treeRoot);
 
-void OnBuildRun();
+void OnSelectJDK(HWND hWnd, HWND hwndTv, HTREEITEM root);
+
+BOOL OnBuildRun(HWND hwndTv, HTREEITEM root, HTREEITEM src);
 
 void OnSize(HWND hWnd, HWND hwndTv, HWND hwndRedit);
 

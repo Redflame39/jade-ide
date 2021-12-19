@@ -24,6 +24,8 @@ WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 HWND hwndTv;
 HWND hwndRedit;
 HTREEITEM treeRoot = NULL;
+HTREEITEM mainItem = NULL;
+HTREEITEM srcItem = NULL;
 LPFINFO lpCurrentFile = NULL;
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
@@ -185,8 +187,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case IDM_OPEN_PROJECT:
             {
                 treeRoot = OnOpenProject(hWnd, hwndTv, treeRoot);
-                break;
+                mainItem = LoadMainClass(hwndTv, treeRoot);
+                srcItem = LoadSrcPackage(hwndTv, treeRoot);
             }
+            break;
             case IDM_CLOSE_PROJECT:
             {
                 treeRoot = OnCloseProject(hwndTv, treeRoot);
@@ -219,17 +223,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
             case IDM_CONTEXT_MARK_AS_MAIN:
             {
-                OnContextMarkAsMain(hInst, hWnd, hwndTv);
+                mainItem = OnContextMarkAsMain(hInst, hWnd, hwndTv, mainItem);
+            }
+            break;
+            case IDM_CONTEXT_MARK_AS_SRC:
+            {
+                srcItem = OnContextMarkAsSrc(hInst, hWnd, hwndTv, srcItem);
             }
             break;
             case IDM_BUILD_RUN:
             {
-
+                OnBuildRun(hwndTv, treeRoot, srcItem);
             }
             break;
             case IDM_BUILD_SELECTJDK:
             {
-
+                OnSelectJDK(hWnd, hwndTv, treeRoot);
             }
             break;
             default:

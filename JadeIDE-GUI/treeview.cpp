@@ -156,7 +156,7 @@ BOOL InitTreeViewImageLists(HINSTANCE hInst, HWND hwndTV)
     return TRUE;
 }
 
-void MarkPackageAsSource(HWND hwndTv, HTREEITEM hti)
+void MarkPackageAsSource(HWND hwndTv, HTREEITEM hti, HTREEITEM htiOld)
 {
     TVITEM tvi;
 
@@ -168,6 +168,26 @@ void MarkPackageAsSource(HWND hwndTv, HTREEITEM hti)
     tvi.iSelectedImage = lptiData->srcIconId;
 
     TreeView_SetItem(hwndTv, &tvi);
+
+    if (htiOld != NULL)
+    {
+        TVITEM tvOld;
+        tvOld.hItem = htiOld;
+        tvOld.mask = TVIF_PARAM;
+
+        TreeView_GetItem(hwndTv, &tvOld);
+
+        LPFINFO lpfInfo = (LPFINFO)tvOld.lParam;
+
+        lpfInfo->isSource = FALSE;
+
+        tvOld.mask = TVIF_PARAM | TVIF_IMAGE | TVIF_SELECTEDIMAGE;
+
+        tvOld.iImage = lptiData->packageIconId;
+        tvOld.iSelectedImage = lptiData->packageIconId;
+
+        TreeView_SetItem(hwndTv, &tvOld);
+    }
 }
 
 HTREEITEM FindByFullPath(HWND hwndTv, TCHAR* fullPath)
@@ -189,7 +209,7 @@ HTREEITEM FindTreeItem(HWND hwndTv, HTREEITEM hParent, TCHAR* fullPath)
         LPFINFO fInfo = (LPFINFO)tvi.lParam;
         if (!_tcscmp(fInfo->fileFullPath, fullPath))
             return hChild;
-        if (fInfo->fType == FileType::PDIRECTORY)
+        if (fInfo->fType == FileType::PDIRECTORY || fInfo->fType == FileType::PROOT)
         {
             HTREEITEM hti = FindTreeItem(hwndTv, hChild, fullPath);
             if (hti != NULL)
@@ -202,4 +222,38 @@ HTREEITEM FindTreeItem(HWND hwndTv, HTREEITEM hParent, TCHAR* fullPath)
     }
 
     return NULL;
+}
+
+void SetMainIcon(HWND hwndTv, HTREEITEM hti, HTREEITEM htiOld)
+{
+    TVITEM tv;
+    LPTIDATA lptiData = (LPTIDATA)GetWindowLongPtr(hwndTv, GWLP_USERDATA);
+    tv.hItem = hti;
+    tv.mask = TVIF_PARAM;
+    TreeView_GetItem(hwndTv, &tv);
+
+    LPFINFO fInfo = (LPFINFO)tv.lParam;
+    fInfo->isMain = TRUE;
+    tv.lParam = (LPARAM)fInfo;
+    tv.mask = TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_PARAM;
+    tv.iImage = lptiData->mainIconId;
+    tv.iSelectedImage = lptiData->mainIconId;
+    TreeView_SetItem(hwndTv, &tv);
+
+    if (htiOld != NULL)
+    {
+        TVITEM tvOld;
+
+        tvOld.hItem = htiOld;
+        tvOld.mask = TVIF_PARAM;
+        TreeView_GetItem(hwndTv, &tvOld);
+        LPFINFO oldFInfo = (LPFINFO)tvOld.lParam;
+        oldFInfo->isMain = FALSE;
+
+        tvOld.mask = TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_PARAM;
+        tvOld.iImage = lptiData->fileIconId;
+        tvOld.iSelectedImage = lptiData->fileIconId;
+        tv.lParam = (LPARAM)oldFInfo;
+        TreeView_SetItem(hwndTv, &tvOld);
+    }
 }

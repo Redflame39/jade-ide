@@ -146,6 +146,7 @@
     <ClInclude Include="FilesFunctions.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="handlers.h" />
+    <ClInclude Include="SaveSources.bat" />
     <ClInclude Include="JadeIDE.h" />
     <ClInclude Include="redit.h" />
     <ClInclude Include="Resource.h" />
@@ -176,6 +177,9 @@
     <Image Include="root.BMP" />
     <Image Include="small.ico" />
     <Image Include="source.BMP" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Run.bat" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -51,6 +51,9 @@
     <ClInclude Include="build.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SaveSources.bat">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="JadeIDE.cpp">
@@ -108,5 +111,10 @@
     <Image Include="source.BMP">
       <Filter>Resource Files</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Run.bat">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -23,6 +23,8 @@ TCHAR* AppendFileName(TCHAR* baseFilePath, TCHAR* fileName);
 
 BOOL IsPackageExists(TCHAR* path);
 
+BOOL IsFileExists(TCHAR* path);
+
 LPCTSTR OpenDirectory(HWND hwndOwner);
 
 BOOL ListDirectoryContents(HWND hwndTv, const TCHAR* sDir, HTREEITEM parent);
@@ -31,8 +33,12 @@ LPFINFO GetSelectedProjectFileInfo(HWND hwndTv);
 
 BOOL CreateMainPropertyFile(LPFINFO fInfo);
 
+BOOL CreateSrcPropertyFile(LPFINFO fInfo);
+
 TCHAR* ReadFileData(TCHAR* filePath);
 
 BOOL WriteToFile(TCHAR* filePath, BYTE* toWrite);
 
 BOOL WriteToFile(TCHAR* filePath, TCHAR* toWrite);
+
+BOOL WriteToFileAnsi(char* filePath, char* toWrite);

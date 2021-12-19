@@ -132,6 +132,12 @@ INT_PTR CALLBACK CreateProjectDialog(HWND hDlg, UINT message, WPARAM wParam, LPA
         {
             TCHAR* newProjectName = GetDialogInput(hDlg, IDC_NEWPROJECTFOLDER);
 
+            if (newProjectName == NULL || _tcscmp(newProjectName, L"") == 0)
+            {
+                MessageBox(hDlg, L"Input is empty!", L"Error", MB_OK);
+                break;
+            }
+
             HWND hwndTv = (HWND)GetWindowLongPtr(hDlg, GWLP_USERDATA);
 
             LPFINFO fRootInfo = new FINFO;
@@ -142,25 +148,9 @@ INT_PTR CALLBACK CreateProjectDialog(HWND hDlg, UINT message, WPARAM wParam, LPA
 
             HTREEITEM hti = AddItemToTree(hwndTv, fRootInfo, TVI_ROOT);
 
-            TCHAR* src = const_cast<TCHAR*>(TEXT("src"));
-            TCHAR* srcPath = AppendFileName(fRootInfo->fileFullPath, src);
-            if (!IsPackageExists(srcPath))
-            {
-                AddProjectItem(fRootInfo->fileFullPath, src, FileType::PDIRECTORY);
-            }
-
-            LPFINFO fSrcInfo = new FINFO;
-
-            fSrcInfo->fileFullPath = srcPath;
-            fSrcInfo->fileName = src;
-            fSrcInfo->fType = PDIRECTORY;
-            fSrcInfo->isSource = TRUE;
-
-            HTREEITEM hSrc = AddItemToTree(hwndTv, fSrcInfo, hti);
-
-            MarkPackageAsSource(hwndTv, hSrc);
-
             ListDirectoryContents(hwndTv, newProjectName, hti);
+
+            CreateSrcPackage(hwndTv, hti, fRootInfo->fileFullPath);
 
             EndDialog(hDlg, (INT_PTR)hti);
             return (INT_PTR)TRUE;
@@ -168,12 +158,17 @@ INT_PTR CALLBACK CreateProjectDialog(HWND hDlg, UINT message, WPARAM wParam, LPA
         if (LOWORD(wParam) == IDCANCEL)
         {
             EndDialog(hDlg, LOWORD(wParam));
-            return (INT_PTR)TRUE;
+            return (INT_PTR)NULL;
         }
         if (LOWORD(wParam) == IDC_SELECTPROJECTFOLD)
         {
 
             LPCTSTR path = OpenDirectory(hDlg);
+
+            if (path == NULL)
+            {
+                break;
+            }
 
             WORD length = (WORD)SendDlgItemMessage(hDlg,
                 IDC_NEWPROJECTFOLDER,

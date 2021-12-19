@@ -197,7 +197,15 @@ LPFINFO GetSelectedProjectFileInfo(HWND hwndTv)
 
 BOOL CreateMainPropertyFile(LPFINFO fInfo)
 {
-	TCHAR fileName[] = TEXT("mainclass");
+	TCHAR fileName[] = MAINCLASS;
+	TCHAR* fullName = ReplaceFileName(fInfo->fileFullPath, fileName);
+
+	return WriteToFile(fullName, fInfo->fileFullPath);
+}
+
+BOOL CreateSrcPropertyFile(LPFINFO fInfo)
+{
+	TCHAR fileName[] = SRCPACKAGE;
 	TCHAR* fullName = ReplaceFileName(fInfo->fileFullPath, fileName);
 
 	return WriteToFile(fullName, fInfo->fileFullPath);
@@ -209,7 +217,7 @@ TCHAR* ReadFileData(TCHAR* filePath)
 		GENERIC_READ,
 		NULL,
 		NULL,
-		OPEN_EXISTING,
+		OPEN_ALWAYS,
 		FILE_ATTRIBUTE_NORMAL,
 		NULL);
 
@@ -267,6 +275,24 @@ BOOL WriteToFile(TCHAR* filePath, TCHAR* toWrite)
 	CloseHandle(hFile);
 	return writed;
 }
+
+BOOL WriteToFileAnsi(char* filePath, char* toWrite)
+{
+	ofstream file(filePath);
+
+	if (file.is_open())
+	{
+		file << toWrite;
+	}
+	else
+	{
+		return FALSE;
+	}
+	file.close();
+
+	return TRUE;
+}
+
 
 BOOL IsPackageExists(TCHAR* path)
 {

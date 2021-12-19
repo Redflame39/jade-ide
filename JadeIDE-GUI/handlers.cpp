@@ -189,7 +189,7 @@ void OnContextRename(HINSTANCE hInst, HWND hWnd, HWND hwndTv)
     DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_RENAMEFILEBOX), hWnd, RenameFileDialog, (LPARAM)rfData);
 }
 
-void OnContextMarkAsMain(HINSTANCE hInst, HWND hWnd, HWND hwndTv)
+HTREEITEM OnContextMarkAsMain(HINSTANCE hInst, HWND hWnd, HWND hwndTv, HTREEITEM htiOld)
 {
     HTREEITEM hti = TreeView_GetSelection(hwndTv);
     TVITEM tv;
@@ -198,12 +198,23 @@ void OnContextMarkAsMain(HINSTANCE hInst, HWND hWnd, HWND hwndTv)
     TreeView_GetItem(hwndTv, &tv);
     if (CreateMainPropertyFile((LPFINFO)tv.lParam))
     {
-        LPTIDATA lptiData = (LPTIDATA)GetWindowLongPtr(hwndTv, GWLP_USERDATA);
-        tv.mask = TVIF_IMAGE | TVIF_SELECTEDIMAGE;
-        tv.iImage = lptiData->mainIconId;
-        tv.iSelectedImage = lptiData->mainIconId;
-        TreeView_SetItem(hwndTv, &tv);
+        SetMainIcon(hwndTv, hti, htiOld);
     }
+    return hti;
+}
+
+HTREEITEM OnContextMarkAsSrc(HINSTANCE hInst, HWND hWnd, HWND hwndTv, HTREEITEM htiOld)
+{
+    HTREEITEM hti = TreeView_GetSelection(hwndTv);
+    TVITEM tv;
+    tv.hItem = hti;
+    tv.mask = TVIF_PARAM;
+    TreeView_GetItem(hwndTv, &tv);
+    if (CreateSrcPropertyFile((LPFINFO)tv.lParam))
+    {
+        MarkPackageAsSource(hwndTv, hti, htiOld);
+    }
+    return hti;
 }
 
 void OnSaveFile(LPFINFO lpCurrentFile, HWND hWnd, HWND hwndRedit)
@@ -219,6 +230,10 @@ void OnSaveFile(LPFINFO lpCurrentFile, HWND hWnd, HWND hwndRedit)
 HTREEITEM OnCreateProject(HINSTANCE hInst, HWND hWnd, HWND hwndTv)
 {
     HTREEITEM root = (HTREEITEM)DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_CREATEPROJECTBOX), hWnd, CreateProjectDialog, (LPARAM)hwndTv);
+    if (root == (HTREEITEM)2)
+    {
+        return NULL;
+    }
     return root;
 }
 
@@ -236,6 +251,9 @@ HTREEITEM OnOpenProject(HWND hWnd, HWND hwndTv, HTREEITEM treeRoot)
     LPFINFO pInfo = CreateProjectFileInfo(const_cast<LPTSTR>(path), const_cast<LPTSTR>(path), FileType::PROOT);
     treeRoot = AddItemToTree(hwndTv, pInfo, TVI_ROOT);
     ListDirectoryContents(hwndTv, path, treeRoot);
+
+    
+    
     return treeRoot;
 }
 
@@ -287,4 +305,54 @@ void OnPaint(HWND hWnd)
     HDC hdc = BeginPaint(hWnd, &ps);
     // TODO: Add any drawing code that uses hdc here...
     EndPaint(hWnd, &ps);
+}
+
+void OnSelectJDK(HWND hWnd, HWND hwndTv, HTREEITEM root)
+{
+    if (root == NULL)
+    {
+        MessageBox(hWnd, L"Need to open project first", L"Error", MB_OK);
+        return;
+    }
+    LPCTSTR pathToJDK = OpenDirectory(hWnd);
+
+    if (ValidateJDK(const_cast<TCHAR*>(pathToJDK)))
+    {
+        TVITEM tvi;
+        tvi.hItem = root;
+        tvi.mask = TVIF_PARAM;
+        TreeView_GetItem(hwndTv, &tvi);
+        LPFINFO fInfo = (LPFINFO)tvi.lParam;
+
+        TCHAR* pathToJdkProp = AppendFileName(fInfo->fileFullPath, const_cast<TCHAR*>(JDKPATH));
+
+        WriteToFile(pathToJdkProp, const_cast<TCHAR*>(pathToJDK));
+    }
+    else
+    {
+        MessageBox(hWnd, L"Failed to validate JDK", L"Error", MB_OK);
+    }
+}
+
+BOOL OnBuildRun(HWND hwndTv, HTREEITEM root, HTREEITEM src)
+{
+    if (root == NULL)
+    {
+        return FALSE;
+    }
+    TVITEM tvi;
+    tvi.hItem = root;
+    tvi.mask = TVIF_PARAM;
+    TreeView_GetItem(hwndTv, &tvi);
+    LPFINFO fInfo = (LPFINFO)tvi.lParam;
+
+    TCHAR* pathToJdkProp = AppendFileName(fInfo->fileFullPath, const_cast<TCHAR*>(JDKPATH));
+
+    if (!PathFileExists(pathToJdkProp))
+    {
+        return FALSE;
+    }
+
+    BuildProject(hwndTv, src, root);
+
 }

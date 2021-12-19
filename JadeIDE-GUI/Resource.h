@@ -28,7 +28,8 @@
 #define IDM_CONTEXTRENAME               203
 #define IDM_CONTEXTCREATEFILE           211
 #define IDM_CONTEXTCREATEPACKAGE        212
-#define IDM_CONTEXT_MARK_AS_MAIN         221
+#define IDM_CONTEXT_MARK_AS_MAIN        221
+#define IDM_CONTEXT_MARK_AS_SRC         222
 #define IDC_NEWFILETEXT                 300
 #define IDC_SELECTPROJECTFOLD           301
 #define IDC_NEWPROJECTFOLDER            302
@@ -45,7 +46,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        129
-#define _APS_NEXT_COMMAND_VALUE         32775
+#define _APS_NEXT_COMMAND_VALUE         32776
 #define _APS_NEXT_CONTROL_VALUE         1000
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
